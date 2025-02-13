@@ -1,0 +1,125 @@
+package com.iss.controllers;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iss.Services.CourseService;
+import com.iss.Services.TaskImageService;
+import com.iss.Services.TasksService;
+import com.iss.Services.VedioService;
+import com.iss.models.Course;
+import com.iss.Dto.*;
+import com.iss.models.Tasks;
+import com.iss.models.Vedio;
+
+@RestController
+@RequestMapping("/api")
+
+public class ValidController
+{
+	private final CourseService courseService;
+	private final TasksService	tasksService;
+	private final VedioService	vedioService;
+	private final TaskImageService taskImageService;
+	public ValidController(CourseService courseService,TasksService tasksService,VedioService vedioService,TaskImageService taskImageService)
+	{
+		this.courseService=courseService;
+		this.tasksService=tasksService;
+		this.vedioService=vedioService;
+		this.taskImageService=taskImageService;
+	}
+	@GetMapping("/userinfo")
+    public ResponseEntity<Map<String, Object>> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        List<String> audience = jwt.getAudience();
+
+        Map<String, Object> userInfo = Map.of(
+            "email", email,
+            "name", name,
+            "audience",audience
+        );
+
+        return ResponseEntity.ok(userInfo);
+    }
+	@PostMapping("/addCourse")
+	public ResponseEntity<?> addCourseData(@RequestBody Course course)throws Exception
+	{	
+		CourseDto c=courseService.add(course);
+		return ResponseEntity.ok(c);
+	}
+	@GetMapping("/getCourse")
+	public ResponseEntity<?> getCourses()
+	{
+		List<CourseDto>	list=courseService.findAll();
+		return ResponseEntity.ok(list);
+	}
+	@GetMapping("/findCourse")
+	public ResponseEntity<?> getCourses(@RequestParam int courseId) {
+	    CourseDto course = courseService.find(courseId);
+	    return ResponseEntity.ok(course);
+	}
+	@GetMapping(value="/findCourseThumbnail",produces = "image/png")
+	public ResponseEntity<?> getCoursesthumbnail(@RequestParam int courseId) {
+	    byte[] thumbnail=courseService.findThumbnail(courseId);
+	    HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+
+        return new ResponseEntity<>(thumbnail, headers, HttpStatus.OK);
+	}
+
+	@PostMapping("/getVideos")
+	public ResponseEntity<?> getVideos(@RequestParam int courseId,@RequestParam int size,@RequestParam int page)
+	{
+		Pageable pageable=PageRequest.of(page, size);
+		List<VideoDto>	list=vedioService.findByCourseId(courseId,pageable);
+		return ResponseEntity.ok(list);
+	}
+	@GetMapping("/findVideo")
+	public ResponseEntity<?> findVideo(@RequestParam int videoId)
+	{
+		return ResponseEntity.ok(vedioService.find(videoId));
+	}
+	@PostMapping("/addVideo")
+	public ResponseEntity<?> addVedioData(@RequestBody VideoDto vedio)
+	{
+		System.out.println(vedio);
+		return ResponseEntity.ok(vedioService.add(vedio));
+	}
+	@PostMapping("/addTasks")
+	public ResponseEntity<?> addCourseData(@RequestBody Tasks tasks)
+	{
+		return ResponseEntity.ok(tasksService.add(tasks));
+	}
+	@PostMapping("/getTasks")
+	public ResponseEntity<?> getTasks(@RequestParam int videoId,@RequestParam int size,@RequestParam int page)
+	{
+		Pageable pageable=PageRequest.of(page, size);
+		List<TasksDto>	list=tasksService.findByVideoId(videoId,pageable);
+		return ResponseEntity.ok(list);
+	}
+	@GetMapping("/findTaskImages")
+	public ResponseEntity<?> getTasks(@RequestParam int taskId)
+	{
+		List<TaskImageDto>	list=taskImageService.findByTaskId(taskId);
+		return ResponseEntity.ok(list);
+	}
+}

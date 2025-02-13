@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "security.jwt.secret-key",
+    "type": "java.lang.String",
+    "description": "A description for 'security.jwt.secret-key'"
+  },
+  {
+    "name": "security.jwt.expiration-time",
+    "type": "java.lang.String",
+    "description": "A description for 'security.jwt.expiration-time'"
+  },
+  {
+    "name": "hibernate.bytecode.use_reflection_optimizer",
+    "type": "java.lang.String",
+    "description": "A description for 'hibernate.bytecode.use_reflection_optimizer'"
+  }
+]}
