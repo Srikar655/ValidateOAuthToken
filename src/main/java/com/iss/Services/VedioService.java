@@ -42,9 +42,10 @@ public class VedioService {
 	    return VideoMapper.Instance.toDtoList(list);
 	}
 
-	public VideoDto update(Vedio vedio)
+	public VideoDto update(VideoDto vedio)
 	{
-		return VideoMapper.Instance.toDto(repos.save(vedio));
+		Vedio vedioentity=VideoMapper.Instance.toEntity(vedio);
+		return VideoMapper.Instance.toDto(repos.save(vedioentity));
 	}
 	public void delete(int id)
 	{

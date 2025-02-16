@@ -3,7 +3,7 @@ package com.iss.controllers;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,16 +98,46 @@ public class ValidController
 	{
 		return ResponseEntity.ok(vedioService.find(videoId));
 	}
+	@GetMapping("/deleteVideo")
+	public ResponseEntity<?> deleteVideo(@RequestParam int videoId)
+	{
+		vedioService.delete(videoId);
+		Map<String,String> map=new HashMap<String,String>();
+		map.put("response","Deletion Successfull");
+			return ResponseEntity.ok(map);
+	}
 	@PostMapping("/addVideo")
 	public ResponseEntity<?> addVedioData(@RequestBody VideoDto vedio)
 	{
-		System.out.println(vedio);
 		return ResponseEntity.ok(vedioService.add(vedio));
 	}
-	@PostMapping("/addTasks")
-	public ResponseEntity<?> addCourseData(@RequestBody Tasks tasks)
+	@PostMapping("/updateVideo")
+	public ResponseEntity<?> updateVideo(@RequestBody VideoDto vedio)
+	{
+		return ResponseEntity.ok(vedioService.update(vedio));
+	}
+	@PostMapping("/addTask")
+	public ResponseEntity<?> addCourseData(@RequestBody TasksDto tasks)
 	{
 		return ResponseEntity.ok(tasksService.add(tasks));
+	}
+	@GetMapping("/deleteTask")
+	public ResponseEntity<?> deleteTask(@RequestParam int taskId)
+	{
+		tasksService.delete(taskId);
+		Map<String,String> map=new HashMap<String,String>();
+		map.put("response","Deletion Successfull");
+			return ResponseEntity.ok(map);
+	}
+	@GetMapping("/findTask")
+	public ResponseEntity<?> findTask(@RequestParam int taskId)
+	{
+			return ResponseEntity.ok(tasksService.find(taskId));
+	}
+	@PostMapping("/updateTask")
+	public ResponseEntity<?> updateTask(@RequestBody TasksDto tasks)
+	{
+		return ResponseEntity.ok(tasksService.update(tasks));
 	}
 	@PostMapping("/getTasks")
 	public ResponseEntity<?> getTasks(@RequestParam int videoId,@RequestParam int size,@RequestParam int page)

@@ -23,8 +23,7 @@ public class CourseService {
 	}
 	public CourseDto add(Course course)
 	{
-		Course c= repos.save(course);
-		return CourseMapper.Instance.toDto(c);
+		return CourseMapper.Instance.toDto(repos.save(course));
 	}
 	public List<CourseDto> findAll()
 	{

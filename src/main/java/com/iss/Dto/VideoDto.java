@@ -1,7 +1,6 @@
 package com.iss.Dto;
 
-import com.iss.models.Course;
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
@@ -18,4 +17,5 @@ public class VideoDto {
 	private String vediotitle;
 	private String vediodescription;
 	private CourseDto course;
+	private List<TasksDto> tasks;
 }

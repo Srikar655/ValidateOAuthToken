@@ -1,7 +1,9 @@
 package com.iss.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +28,7 @@ public class TaskImages {
 	private byte[] taskImage;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference
+	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="task_id",nullable=false,referencedColumnName="id")
 	private Tasks task;
 }

@@ -18,9 +18,10 @@ public class TasksService {
 	{
 		this.repos=repos;
 	}
-	public TasksDto add(Tasks task)
+	public TasksDto add(TasksDto task)
 	{
-		return TasksMapper.Instance.toDto(repos.save(task));
+		Tasks entity=TasksMapper.Instance.toEntity(task);
+		return TasksMapper.Instance.toDto(repos.save(entity));
 	}
 	public List<TasksDto> add(List<Tasks> tasks)
 	{
@@ -38,9 +39,10 @@ public class TasksService {
 	    List<Tasks> tasks= repos.findByVideoId(videoId, pageable).getContent();
 	    return TasksMapper.Instance.toDtoList(tasks);
 	}
-	public TasksDto update(Tasks task)
+	public TasksDto update(TasksDto task)
 	{
-		return TasksMapper.Instance.toDto(repos.save(task));
+		Tasks entity=TasksMapper.Instance.toEntity(task);
+		return TasksMapper.Instance.toDto(repos.save(entity));
 	}
 	public void delete(int id)
 	{
