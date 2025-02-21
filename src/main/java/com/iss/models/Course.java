@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -39,6 +40,7 @@ public class Course {
 	List<Vedio> vedios;
 	
 	private String courseTrailer;
+	@Column(length = 1000) 
 	private String courseDescription;
 	private List<String> courseFeatures;
 }

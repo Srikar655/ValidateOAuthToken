@@ -60,10 +60,18 @@ public class ValidController
 
         return ResponseEntity.ok(userInfo);
     }
+	
 	@PostMapping("/addCourse")
 	public ResponseEntity<?> addCourseData(@RequestBody Course course)throws Exception
 	{	
 		CourseDto c=courseService.add(course);
+		return ResponseEntity.ok(c);
+	}
+
+	@PostMapping("/editCourse")
+	public ResponseEntity<?> updateCourse(@RequestBody Course course)throws Exception
+	{	
+		CourseDto c=courseService.update(course);
 		return ResponseEntity.ok(c);
 	}
 	@GetMapping("/getCourse")
@@ -77,6 +85,7 @@ public class ValidController
 		courseService.delete(courseId);
 		return ResponseEntity.ok(courseId);
 	}
+	
 	@GetMapping("/findCourse")
 	public ResponseEntity<?> getCourses(@RequestParam int courseId) {
 	    CourseDto course = courseService.find(courseId);
@@ -118,7 +127,7 @@ public class ValidController
 		return ResponseEntity.ok(vedioService.update(vedio));
 	}
 	@PostMapping("/addTask")
-	public ResponseEntity<?> addCourseData(@RequestBody Tasks tasks)
+	public ResponseEntity<?> addTask(@RequestBody Tasks tasks)
 	{
 		return ResponseEntity.ok(tasksService.add(tasks));
 	}
