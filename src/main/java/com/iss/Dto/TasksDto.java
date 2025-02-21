@@ -18,7 +18,7 @@ public class TasksDto {
 	private String task;
 	private String taskurl;
 	private double taskprice;
-	private List<TaskImageDto> taskimage;
+	private List<TaskImageDto> taskimages;
 	private Vedio video;
 
 }

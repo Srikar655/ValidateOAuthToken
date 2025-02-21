@@ -38,7 +38,6 @@ public class VedioService {
 	}
 	public List<VideoDto> findByCourseId(int courseId, Pageable pageable) {
 	    List<Vedio> list= repos.findByCourseId(courseId, pageable).getContent();
-	    //System.out.println(list);
 	    return VideoMapper.Instance.toDtoList(list);
 	}
 

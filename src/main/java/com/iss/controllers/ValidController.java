@@ -72,18 +72,19 @@ public class ValidController
 		List<CourseDto>	list=courseService.findAll();
 		return ResponseEntity.ok(list);
 	}
+	@GetMapping("/deleteCourse")
+	public ResponseEntity<?> deleteCourse(@RequestParam int courseId){
+		courseService.delete(courseId);
+		return ResponseEntity.ok(courseId);
+	}
 	@GetMapping("/findCourse")
 	public ResponseEntity<?> getCourses(@RequestParam int courseId) {
 	    CourseDto course = courseService.find(courseId);
 	    return ResponseEntity.ok(course);
 	}
-	@GetMapping(value="/findCourseThumbnail",produces = "image/png")
-	public ResponseEntity<?> getCoursesthumbnail(@RequestParam int courseId) {
-	    byte[] thumbnail=courseService.findThumbnail(courseId);
-	    HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG);
-
-        return new ResponseEntity<>(thumbnail, headers, HttpStatus.OK);
+	@PostMapping(value="/findCourseThumbnail")
+	public ResponseEntity<?> getCoursesthumbnail(@RequestBody int courseId) {
+        return  ResponseEntity.ok(courseService.findThumbnail(courseId));
 	}
 
 	@PostMapping("/getVideos")
@@ -117,7 +118,7 @@ public class ValidController
 		return ResponseEntity.ok(vedioService.update(vedio));
 	}
 	@PostMapping("/addTask")
-	public ResponseEntity<?> addCourseData(@RequestBody TasksDto tasks)
+	public ResponseEntity<?> addCourseData(@RequestBody Tasks tasks)
 	{
 		return ResponseEntity.ok(tasksService.add(tasks));
 	}
@@ -135,7 +136,7 @@ public class ValidController
 			return ResponseEntity.ok(tasksService.find(taskId));
 	}
 	@PostMapping("/updateTask")
-	public ResponseEntity<?> updateTask(@RequestBody TasksDto tasks)
+	public ResponseEntity<?> updateTask(@RequestBody Tasks tasks)
 	{
 		return ResponseEntity.ok(tasksService.update(tasks));
 	}
@@ -150,6 +151,15 @@ public class ValidController
 	public ResponseEntity<?> getTasks(@RequestParam int taskId)
 	{
 		List<TaskImageDto>	list=taskImageService.findByTaskId(taskId);
+		System.out.println("got");
 		return ResponseEntity.ok(list);
+	}
+	@GetMapping("/deleteTaskImage")
+	public ResponseEntity<?> deleteTaskImage(@RequestParam int imageId)
+	{
+		taskImageService.delete(imageId);
+		Map<String,String> map=new HashMap<String,String>();
+		map.put("response","Deletion Successfull");
+		return ResponseEntity.ok(map);
 	}
 }

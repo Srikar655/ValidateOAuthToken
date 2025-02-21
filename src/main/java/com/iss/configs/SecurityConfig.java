@@ -50,7 +50,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));  // Use custom CORS configuration
     	http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/api/userinfo", "/api/addCourse", "/api/addVedio", "/api/addTasks","/api/addData","/api/findCourse","/api/getCourse","/api/getVideos","/api/findCourseThumbnail","/api/findTaskImages","/api/updateVideo","/api/deleteVideo","api/getTasks","api/findTask","api/updateTask","api/deleteTask").authenticated()  // Protect specific endpoints
+                                .requestMatchers("/api/userinfo", "/api/addCourse", "/api/addVedio", "/api/deleteCourse","/api/addTasks","/api/addData","/api/findCourse","/api/getCourse","/api/getVideos","/api/findCourseThumbnail","/api/findTaskImages","/api/updateVideo","/api/deleteVideo","api/getTasks","api/findTask","api/updateTask","api/deleteTask","api/deleteTaskImage").authenticated()  // Protect specific endpoints
                                 .anyRequest().permitAll()  // Allow other requests (adjust as needed)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

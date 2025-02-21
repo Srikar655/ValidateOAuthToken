@@ -18,4 +18,5 @@ public interface CourseMapper {
 	@Mapping(target = "vedios", ignore = true)
 	List<CourseDto> toDtoList(List<Course> courses);
 	List<CourseDto> toEntityList(List<CourseDto> coursedtos);
+	
 }

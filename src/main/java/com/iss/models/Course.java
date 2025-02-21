@@ -37,4 +37,8 @@ public class Course {
 	@JsonManagedReference
 	@OneToMany(mappedBy="course",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<Vedio> vedios;
+	
+	private String courseTrailer;
+	private String courseDescription;
+	private List<String> courseFeatures;
 }

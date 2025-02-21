@@ -15,4 +15,7 @@ public class CourseDto {
 	private double courseprice;
 	private byte[] coursethumbnail;
 	private List<VideoDto> vedios;
+	private String courseTrailer;
+	private String courseDescription;
+	private List<String> courseFeatures;
 }

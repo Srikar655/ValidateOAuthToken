@@ -43,4 +43,7 @@ public class Vedio {
 	@OneToMany(mappedBy="video",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	@JsonManagedReference
 	private List<Tasks> tasks;
+	
+	
+	
 }

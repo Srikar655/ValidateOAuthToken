@@ -32,4 +32,8 @@ public class TaskImageService {
 	{
 		return TaskImageMapper.Instance.toDtoList(repos.findByTaskId(id));
 	}
+	public void delete(int id)
+	{
+		repos.deleteById(id);
+	}
 }

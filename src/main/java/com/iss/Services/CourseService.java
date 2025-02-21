@@ -27,19 +27,28 @@ public class CourseService {
 	}
 	public List<CourseDto> findAll()
 	{
-		List<CourseDto> list= CourseMapper.Instance.toDtoList(repos.findAll());
+		List<CourseDto> list = null;
+		try
+		{
+			list= CourseMapper.Instance.toDtoList(repos.findAll());
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
 		return list;
 	}
 	public CourseDto find(int id) {
+		
 	    Course c = repos.findById(id).get(); // Fetching the Course entity
 	    CourseDto dto = CourseMapper.Instance.toDto(c); // Now map to DTO after modification
-	    dto.setCoursethumbnail(c.getCoursethumbnail());
 	    return dto;
 	}
 
-	public byte[] findThumbnail(int id)
+	public CourseDto findThumbnail(int id)
 	{
-		return repos.findCoursethumbnailById(id);
+		CourseDto dto=new CourseDto();
+		 dto.setCoursethumbnail(repos.findCoursethumbnailById(id));
+		 dto.setId(id);
+		 return dto;
 	}
 	public CourseDto update(Course course)
 	{

@@ -44,4 +44,6 @@ public class Tasks {
 	@JsonBackReference
 	@JoinColumn(name="video_id",nullable=false,referencedColumnName="id")
 	private Vedio video;
+	
+
 }
