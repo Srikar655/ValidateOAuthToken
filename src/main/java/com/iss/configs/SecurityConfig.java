@@ -1,12 +1,22 @@
 package com.iss.configs;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -18,18 +28,25 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.iss.Validators.*;
+import com.iss.models.User;
+import com.iss.models.Role;
+import com.iss.Services.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
 public class SecurityConfig {
 
 	private final List<String> validAudiences;
-	public SecurityConfig()
+	
+	private final CustomUserDetailsService userservice;
+	
+	public SecurityConfig(CustomUserDetailsService userservice)
 	{
 		 validAudiences= Arrays.asList(
 			        "950816388236-beh5nkicurvu1o30tcikbds4p7d481s4.apps.googleusercontent.com",
 			        "141367274358-radhhb6jmms5eu9j743u5i2bfchkdt2f.apps.googleusercontent.com"
 			    );
+		 this.userservice=userservice;
 	}
 	@Bean
      CorsConfigurationSource corsConfigurationSource() {
@@ -50,7 +67,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));  // Use custom CORS configuration
     	http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/api/userinfo", "/api/addCourse", "/api/addVedio","/api/updateCourse", "/api/deleteCourse","/api/addTasks","/api/addData","/api/findCourse","/api/getCourse","/api/getVideos","/api/findCourseThumbnail","/api/findTaskImages","/api/updateVideo","/api/deleteVideo","api/getTasks","api/findTask","api/updateTask","api/deleteTask","api/deleteTaskImage").authenticated()  // Protect specific endpoints
+                                .requestMatchers("/api/userinfo", "/api/addCourse", "/api/addVedio","/api/updateCourse", "/api/deleteCourse","/api/addTasks","/api/addData","/api/findCourse","/api/getCourse","/api/getVideos","/api/findCourseThumbnail","/api/findTaskImages","/api/updateVideo","/api/deleteVideo","/api/getTasks","/api/findTask","/api/updateTask","/api/deleteTask","/api/deleteTaskImage","/api/login").authenticated()  // Protect specific endpoints
                                 .anyRequest().permitAll()  // Allow other requests (adjust as needed)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -67,13 +84,58 @@ public class SecurityConfig {
     	NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri("https://www.googleapis.com/oauth2/v3/certs").build();
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(validAudiences);
         jwtDecoder.setJwtValidator(audienceValidator);
+        
         return jwtDecoder;
     }
     @Bean
-     JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        // Customize the JWT claims you need to extract here (if needed)
+        
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            try {
+                // Extract email and name from the JWT token
+                String email = jwt.getClaim("email");
+                String name = jwt.getClaimAsString("name");
+                
+                // Define a default role for new users
+                Set<Role> roles = new HashSet<>();
+                roles.add(new Role("ROLE_USER"));
+
+                UserDetails user = null;
+                try {
+                    // Try to load the user by email
+                    user = this.userservice.loadUserByUsername(email);
+                } catch (UsernameNotFoundException e) {
+                    // User not found, create a new user
+                    User newUser = User.builder()
+                        .email(email)
+                        .username(name)
+                        .phonenumber("")  // Set phone number if needed
+                        .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                        .roles(roles)
+                        .build();
+                    
+                    // Save the new user
+                    this.userservice.add(newUser);
+                    // Reload the newly created user
+                    user = this.userservice.loadUserByUsername(email);
+                }
+
+                // Get the authorities from the user object
+                Collection<? extends GrantedAuthority> databaseAuthorities = user.getAuthorities();
+
+                // Return the authorities
+                return (Collection<GrantedAuthority>) databaseAuthorities;
+            } catch (Exception ex) {
+                // Log the exception and return null if something goes wrong
+                ex.printStackTrace();
+            }
+            return null;
+        });
+
         return converter;
     }
+
+
 }
 

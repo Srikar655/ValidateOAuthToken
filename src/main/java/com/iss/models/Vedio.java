@@ -3,7 +3,6 @@ package com.iss.models;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Basic;
@@ -36,14 +35,15 @@ public class Vedio {
 	private String vediotitle;
 	private String vediodescription;
 	@ManyToOne(fetch=FetchType.LAZY)
-	@JsonBackReference
+	@JsonBackReference("course-videos")
 	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")
 	private Course course;
 	@OneToMany(mappedBy="video",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-	@JsonManagedReference
+	@JsonManagedReference("video-tasks")
 	private List<Tasks> tasks;
-	
-	
+	@JsonManagedReference("video-uservedios")
+	@OneToMany(mappedBy="vedio",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+	private List<UserVedio> uservedio;
 	
 }

@@ -4,7 +4,6 @@ import java.util.List;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -41,9 +40,11 @@ public class Tasks {
 	private List<TaskImages> taskimages;
 	private double taskprice;
 	@ManyToOne(fetch=FetchType.LAZY)
-	@JsonBackReference
+	@JsonBackReference("video-tasks")
 	@JoinColumn(name="video_id",nullable=false,referencedColumnName="id")
 	private Vedio video;
-	
+	@JsonManagedReference("task-usertasks")
+	@OneToMany(mappedBy="task",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+	private List<UserTask> usertask;
 
 }

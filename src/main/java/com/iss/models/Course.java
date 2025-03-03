@@ -35,7 +35,7 @@ public class Course {
 	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	private byte[] coursethumbnail;
-	@JsonManagedReference
+	@JsonManagedReference("course-videos")
 	@OneToMany(mappedBy="course",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<Vedio> vedios;
 	
@@ -43,4 +43,7 @@ public class Course {
 	@Column(length = 1000) 
 	private String courseDescription;
 	private List<String> courseFeatures;
+	@JsonManagedReference("course-usercourses")
+	@OneToMany(mappedBy="course",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+	private List<UserCourse> usercourse;
 }

@@ -100,10 +100,10 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 <dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.33</version> <!-- Ensure the version is compatible with your setup -->
-</dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
 	</dependencies>
 

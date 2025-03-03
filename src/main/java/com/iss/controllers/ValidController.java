@@ -60,6 +60,16 @@ public class ValidController
 
         return ResponseEntity.ok(userInfo);
     }
+	@GetMapping("/login")
+    public ResponseEntity<?> login(@AuthenticationPrincipal Jwt jwt) {
+
+		Map<String, String> map=new HashMap<String,String>();
+		map.put("token", jwt.getTokenValue());
+        return ResponseEntity.ok(map);
+    }
+	
+	
+	
 	
 	@PostMapping("/addCourse")
 	public ResponseEntity<?> addCourseData(@RequestBody Course course)throws Exception
@@ -75,7 +85,7 @@ public class ValidController
 		return ResponseEntity.ok(c);
 	}
 	@GetMapping("/getCourse")
-	public ResponseEntity<?> getCourses()
+	public ResponseEntity<?> getCourses()  
 	{
 		List<CourseDto>	list=courseService.findAll();
 		return ResponseEntity.ok(list);
