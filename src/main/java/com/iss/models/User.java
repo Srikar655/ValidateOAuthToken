@@ -1,5 +1,7 @@
 package com.iss.models;
 
+
+
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
@@ -23,15 +25,14 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="Users")
-public class User
-{
+@Table(name = "users")  // Use lowercase as standard practice in table names
+public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -43,25 +44,28 @@ public class User
     private String email;
 
     private String password;
-    
+
     private String phonenumber;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "users_roles",
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "name")
+        inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
-    private Set<Role> roles;
 
-    @Column
+    private Set<Role> roles;
+    
+    private String Picture;
+
+    @Column(nullable = false)
     private Timestamp createdAt;
 
     @JsonManagedReference
-	@OneToMany(mappedBy="user",cascade= CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-	List<UserCourse> usercourse;
-    
-    @OneToMany(mappedBy="user",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-	@JsonManagedReference
-	private List<Payment> payments;
-    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UserCourse> userCourses;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Payment> payments;
 }

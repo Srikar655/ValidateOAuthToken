@@ -2,7 +2,7 @@ package com.iss.models;
 
 import java.util.List;
 
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Basic;
@@ -12,7 +12,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,4 +48,8 @@ public class Course {
 	@JsonManagedReference("course-usercourses")
 	@OneToMany(mappedBy="course",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	private List<UserCourse> usercourse;
+	@JsonBackReference("course-category")
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(columnDefinition="coursecategory-id",referencedColumnName="id", nullable = false)
+	private CourseCategory courseCategory;
 }

@@ -5,15 +5,22 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,6 +30,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,23 +38,27 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.iss.Validators.*;
 import com.iss.models.User;
 import com.iss.models.Role;
+import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	private final List<String> validAudiences;
 	
 	private final CustomUserDetailsService userservice;
 	
-	public SecurityConfig(CustomUserDetailsService userservice)
+	private final RoleRepository role;
+	public SecurityConfig(CustomUserDetailsService userservice,RoleRepository role)
 	{
 		 validAudiences= Arrays.asList(
 			        "950816388236-beh5nkicurvu1o30tcikbds4p7d481s4.apps.googleusercontent.com",
 			        "141367274358-radhhb6jmms5eu9j743u5i2bfchkdt2f.apps.googleusercontent.com"
 			    );
 		 this.userservice=userservice;
+		this.role = role;
 	}
 	@Bean
      CorsConfigurationSource corsConfigurationSource() {
@@ -92,45 +104,34 @@ public class SecurityConfig {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String email = jwt.getClaim("email");
+            String name = jwt.getClaimAsString("name");
+            String picture =jwt.getClaimAsString("picture");
+            UserDetails user;
+            Collection <? extends GrantedAuthority> collection=null;
+
             try {
-                // Extract email and name from the JWT token
-                String email = jwt.getClaim("email");
-                String name = jwt.getClaimAsString("name");
+                user = this.userservice.loadUserByUsername(email);
+                collection=user.getAuthorities();
+            } catch (UsernameNotFoundException e) {
+
+                User newUser = User.builder()
+                    .email(email)
+                    .username(name)
+                    .phonenumber("")
+                    .Picture(picture)
+                    .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                    .roles(Collections.singleton(role.findByName("ROLE_USER")))
+                    .build();
                 
-                // Define a default role for new users
-                Set<Role> roles = new HashSet<>();
-                roles.add(new Role("ROLE_USER"));
-
-                UserDetails user = null;
-                try {
-                    // Try to load the user by email
-                    user = this.userservice.loadUserByUsername(email);
-                } catch (UsernameNotFoundException e) {
-                    // User not found, create a new user
-                    User newUser = User.builder()
-                        .email(email)
-                        .username(name)
-                        .phonenumber("")  // Set phone number if needed
-                        .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                        .roles(roles)
-                        .build();
-                    
-                    // Save the new user
-                    this.userservice.add(newUser);
-                    // Reload the newly created user
-                    user = this.userservice.loadUserByUsername(email);
-                }
-
-                // Get the authorities from the user object
-                Collection<? extends GrantedAuthority> databaseAuthorities = user.getAuthorities();
-
-                // Return the authorities
-                return (Collection<GrantedAuthority>) databaseAuthorities;
-            } catch (Exception ex) {
-                // Log the exception and return null if something goes wrong
-                ex.printStackTrace();
+                user=this.userservice.add(newUser);
+                collection=user.getAuthorities();
             }
-            return null;
+            System.out.println(collection);
+            
+             return collection.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
+                .collect(Collectors.toList());
         });
 
         return converter;
