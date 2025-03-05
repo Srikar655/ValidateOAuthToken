@@ -36,4 +36,8 @@ public class TaskImageService {
 	{
 		repos.deleteById(id);
 	}
+	public TaskImageDto save(TaskImages taskImage) {
+		
+		return TaskImageMapper.Instance.toDto(repos.save(taskImage));
+	}
 }
