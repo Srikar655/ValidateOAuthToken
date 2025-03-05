@@ -4,14 +4,15 @@ package com.iss.controllers;
 
 import com.iss.Dto.VideoDto;
 import com.iss.Services.VedioService;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/videos")
@@ -53,6 +54,9 @@ public class VideoController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteVideo(@RequestParam int videoId) {
         vedioService.delete(videoId);
-        return ResponseEntity.ok("Video Deleted Successfully");
+        Map<String, String> response = new HashMap<String,String>();
+        response.put("message", "Video Deletion Successful");
+        return ResponseEntity.ok(response);
+
     }
 }

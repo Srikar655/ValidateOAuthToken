@@ -2,27 +2,24 @@ package com.iss.configs;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+
 import java.util.List;
-import java.util.Set;
+
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,14 +27,14 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.iss.Validators.*;
 import com.iss.models.User;
-import com.iss.models.Role;
+
 import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
 @Configuration
@@ -79,7 +76,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));  // Use custom CORS configuration
     	http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/api/userinfo", "/api/addCourse", "/api/addVedio","/api/updateCourse", "/api/deleteCourse","/api/addTasks","/api/addData","/api/findCourse","/api/getCourse","/api/getVideos","/api/findCourseThumbnail","/api/findTaskImages","/api/updateVideo","/api/deleteVideo","/api/getTasks","/api/findTask","/api/updateTask","/api/deleteTask","/api/deleteTaskImage","/api/login").authenticated()  // Protect specific endpoints
+                                .requestMatchers("/api/**").authenticated()  // Protect specific endpoints
                                 .anyRequest().permitAll()  // Allow other requests (adjust as needed)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -127,7 +124,6 @@ public class SecurityConfig {
                 user=this.userservice.add(newUser);
                 collection=user.getAuthorities();
             }
-            System.out.println(collection);
             
              return collection.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
