@@ -57,7 +57,7 @@ public class CourseController {
         return ResponseEntity.ok("Course Deleted Successfully");
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-	@GetMapping(value="/findCourseThumbnail")
+	@GetMapping("/findCourseThumbnail")
 	public ResponseEntity<?> getCoursesthumbnail(@RequestParam int courseId) {
         return  ResponseEntity.ok(courseService.findThumbnail(courseId));
 	}

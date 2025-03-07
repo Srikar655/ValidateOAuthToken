@@ -5,6 +5,7 @@ import com.iss.Mappers.UserVedioMapper;
 import com.iss.Repos.UserVideosRepository;
 import com.iss.models.UserVedio;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +13,13 @@ import java.util.List;
 
 @Service
 public class UserVedioService {
-
+    
     private final UserVideosRepository repos;
 
     public UserVedioService(UserVideosRepository repos) {
         this.repos = repos;
     }
 
-    // Add new video
     public UserVedioDto add(UserVedio user) {
         try {
             return UserVedioMapper.Instance.toDto(repos.save(user));
@@ -29,29 +29,27 @@ public class UserVedioService {
         }
     }
 
-    // Fetch all videos with pagination
     public List<UserVedioDto> findAll(Pageable pageable) {
         try {
-            Page<UserVedio> page = repos.findAll(pageable);
-            return UserVedioMapper.Instance.toDtoList(page.getContent());
+            List<UserVedio> page = repos.findAll(pageable).getContent();
+            return page.map(UserVedioMapper.Instance::toDto);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
         }
     }
-
-    // Fetch all videos without pagination
     public List<UserVedioDto> findAll() {
         try {
             List<UserVedio> page = repos.findAll();
-            return UserVedioMapper.Instance.toDtoList(page);
+            return page.map(UserVedioMapper.Instance::toDto);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
         }
     }
+    
+    
 
-    // Fetch video by ID
     public UserVedioDto find(int id) {
         try {
             return UserVedioMapper.Instance.toDto(repos.findById(id).orElse(null));
@@ -61,18 +59,6 @@ public class UserVedioService {
         }
     }
 
-    // Fetch videos by usercourseId with pagination
-    public List<UserVedioDto> findByUsercourseId(int usercourseId, Pageable pageable) {
-        try {
-            Page<UserVedio> page = repos.findByUsercourseId(usercourseId, pageable);
-            return UserVedioMapper.Instance.toDtoList(page.getContent());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    // Delete video by ID
     public void delete(int id) {
         try {
             repos.deleteById(id);

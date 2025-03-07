@@ -11,5 +11,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 	@Query("SELECT c.coursethumbnail FROM Course c WHERE c.id = :id")
     byte[] findCoursethumbnailById(@Param("id") int id);
 
-
+	@Query("SELECT c FROM Course c where c.courseCategory=:category")
+	List<Course> getAllCategoryRelatedCourses(@Param("category")String category);
 }

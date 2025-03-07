@@ -18,7 +18,7 @@ import com.iss.Services.CourseCategoryService;
 import com.iss.models.CourseCategory;
 
 @RestController
-@RequestMapping("/api/course-categories")
+@RequestMapping("/api/coursecategories")
 public class CourseCategoryController {
 
     private final CourseCategoryService courseCategoryService;
@@ -27,7 +27,7 @@ public class CourseCategoryController {
     public CourseCategoryController(CourseCategoryService courseCategoryService) {
         this.courseCategoryService = courseCategoryService;
     }
-	 @PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	    @GetMapping
 	    public List<CourseCategory> getAllCourseCategories() {
 	        return courseCategoryService.getAllCourseCategories();
