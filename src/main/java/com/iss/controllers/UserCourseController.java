@@ -3,9 +3,13 @@ package com.iss.controllers;
 import com.iss.models.UserCourse;
 import com.iss.Dto.UserCourseDto;
 import com.iss.Services.UserCourseService;
+
+
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +37,9 @@ public class UserCourseController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}")
-    public ResponseEntity<UserCourseDto> getUserCourseById(@PathVariable("id") int id) {
-        UserCourseDto userCourseDto = userCourseService.find(id);
+    public ResponseEntity<UserCourseDto> getUserCourseById(@PathVariable("id") int id,@AuthenticationPrincipal Jwt jwt) {
+ 
+        UserCourseDto userCourseDto = userCourseService.findByCourseId(id,jwt.getClaimAsString("email"));
         if (userCourseDto != null) {
             return new ResponseEntity<>(userCourseDto, HttpStatus.OK);
         } else {

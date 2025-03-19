@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
 
+import com.iss.models.CourseCategory;
 import com.iss.models.UserCourse;
 @Data
 @NoArgsConstructor
@@ -21,4 +22,6 @@ public class CourseDto {
 	private String courseDescription;
 	private List<String> courseFeatures;
 	private List<UserCourse> usercourse;
+	private CourseCategory courseCategory;
+
 }

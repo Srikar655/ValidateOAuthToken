@@ -25,7 +25,8 @@ public class CourseController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<?> addCourse(@RequestBody Course course) throws Exception {
-        CourseDto c = courseService.add(course);
+    	CourseDto c = courseService.add(course);
+    	
         return ResponseEntity.ok(c);
     }
 
@@ -36,14 +37,14 @@ public class CourseController {
         return ResponseEntity.ok(c);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/getAll")
     public ResponseEntity<List<CourseDto>> getAllCourses() {
         List<CourseDto> courses = courseService.findAll();
         return ResponseEntity.ok(courses);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/get")
     public ResponseEntity<?> getCourse(@RequestParam int courseId) {
         CourseDto course = courseService.find(courseId);
@@ -54,9 +55,9 @@ public class CourseController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteCourse(@RequestParam int courseId) {
         courseService.delete(courseId);
-        return ResponseEntity.ok("Course Deleted Successfully");
+        return (ResponseEntity<?>) ResponseEntity.ok();
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 	@GetMapping("/findCourseThumbnail")
 	public ResponseEntity<?> getCoursesthumbnail(@RequestParam int courseId) {
         return  ResponseEntity.ok(courseService.findThumbnail(courseId));

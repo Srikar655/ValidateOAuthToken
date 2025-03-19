@@ -13,7 +13,8 @@ import com.iss.Mappers.UserMapper;
 import com.iss.Repos.UserRepository;
 import com.iss.models.User;
 
-
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,4 +60,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 			return null;
 		}
 	}
+    public Collection<? extends GrantedAuthority> getAuthorities(String email) {
+        return userRepository.findRolesByUsernameOrEmail(email, email)
+            .orElse(Collections.emptyList())  // Handle the case when roles are not found
+            .stream()
+            .map(role -> new SimpleGrantedAuthority(role.getName()))  // Assuming the role entity has a getName() method
+            .collect(Collectors.toList());
+    }
+
 }

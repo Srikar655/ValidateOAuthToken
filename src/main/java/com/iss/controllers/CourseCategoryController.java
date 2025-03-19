@@ -24,16 +24,15 @@ public class CourseCategoryController {
     private final CourseCategoryService courseCategoryService;
 
 
-    public CourseCategoryController(CourseCategoryService courseCategoryService) {
-        this.courseCategoryService = courseCategoryService;
-    }
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+        public CourseCategoryController(CourseCategoryService courseCategoryService) 
+        {
+        	this.courseCategoryService = courseCategoryService;
+    	}
+		@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 	    @GetMapping
 	    public List<CourseCategory> getAllCourseCategories() {
 	        return courseCategoryService.getAllCourseCategories();
 	    }
-
-	    // Fetch a course category by ID
 	    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	    @GetMapping("/{id}")
 	    public ResponseEntity<CourseCategory> getCourseCategoryById(@PathVariable int id) {

@@ -6,7 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.Basic;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +14,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -35,15 +35,13 @@ public class UserCourse {
     @GeneratedValue
     private int id;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference
     @JoinColumn(name = "user_id", nullable = false,referencedColumnName="id")
-    @Basic(fetch=FetchType.LAZY)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("course-usercourses")
-	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")
     private Course course;
     

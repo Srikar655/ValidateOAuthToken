@@ -11,12 +11,18 @@ import com.iss.models.UserCourse;
 public interface UserCourseMapper {
 	UserCourseMapper Instance=Mappers.getMapper(UserCourseMapper.class);
 	@Mapping(target = "user", ignore = true)
-	@Mapping(target = "course", ignore = true)
+	@Mapping(target = "course.coursethumbnail", ignore = true)
+	@Mapping(target = "course.usercourse", ignore = true)
+	@Mapping(target = "course.courseCategory.course", ignore = true)
+	@Mapping(target = "course.vedios", ignore = true)
 	@Mapping(target = "userVedios", ignore = true)
 	UserCourseDto toDto(UserCourse course);
 	UserCourse toEntity(UserCourseDto coursedto);
 	@Mapping(target = "user", ignore = true)
-	@Mapping(target = "course", ignore = true)
+	@Mapping(target = "course.coursethumbnail", ignore = true)
+	@Mapping(target = "course.courseCategory.course", ignore = true)
+	@Mapping(target = "course.usercourse", ignore = true)
+	@Mapping(target = "course.vedios", ignore = true)
 	@Mapping(target = "userVedios", ignore = true)
 	List<UserCourseDto> toDtoList(List<UserCourse> courses);
 	List<UserCourseDto> toEntityList(List<UserCourseDto> coursedtos);

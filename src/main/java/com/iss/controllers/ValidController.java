@@ -1,50 +1,80 @@
 package com.iss.controllers;
 
-import java.util.List;
-import java.util.Map;
+
+import java.sql.Timestamp;
+import java.util.Set;
+
+
 
 import org.springframework.http.ResponseEntity;
 
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.iss.models.User;
+
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
 
 
-@RestController
-@RequestMapping("/api")
 
+
+@RestController
+
+@RequestMapping("/api")
 public class ValidController
 {
-
 	private final CustomUserDetailsService userService;
-	public ValidController(CustomUserDetailsService userService)
-	{
+	private final RoleRepository roleRepos;
 
-		this.userService=userService;
+	public ValidController(CustomUserDetailsService userService,RoleRepository roleRepos) {
+		super();
+		this.userService = userService;
+		this.roleRepos = roleRepos;
 	}
 	@GetMapping("/userinfo")
-    public ResponseEntity<Map<String, Object>> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
 
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-        List<String> audience = jwt.getAudience();
+		String email = jwt.getClaim("email");
+        UserDetails user;
 
-        Map<String, Object> userInfo = Map.of(
-            "email", email,
-            "name", name,
-            "audience",audience
-        );
+        try {
+            user = this.userService.loadUserByUsername(email);
+        } catch (UsernameNotFoundException e) {
 
-        return ResponseEntity.ok(userInfo);
+        	String name= jwt.getClaimAsString("name");
+    		String picture=jwt.getClaimAsString("picture");
+    		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
+			user=userService.add(u);
+        }
+
+        return ResponseEntity.ok(user);
     }
 	@GetMapping("/login")
     public ResponseEntity<?> login(@AuthenticationPrincipal Jwt jwt) {
 		
-        return ResponseEntity.ok(userService.loadUserByUsername(jwt.getClaimAsString("email")));
+		 
+		String email = jwt.getClaim("email");
+        UserDetails user;
+
+        try {
+            user = this.userService.loadUserByUsername(email);
+        } catch (UsernameNotFoundException e) {
+
+        	String name= jwt.getClaimAsString("name");
+    		String picture=jwt.getClaimAsString("picture");
+    		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
+			user=userService.add(u);
+        }
+
+        return ResponseEntity.ok(user);
+         
+         
     }	
 }
