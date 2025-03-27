@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.iss.models.CourseCategory;
 import com.iss.models.UserCourse;
+import com.iss.models.Vedio;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +18,7 @@ public class CourseDto {
 	private String coursename;
 	private double courseprice;
 	private byte[] coursethumbnail;
-	private List<VideoDto> vedios;
+	private List<Vedio> vedios;
 	private String courseTrailer;
 	private String courseDescription;
 	private List<String> courseFeatures;

@@ -70,8 +70,9 @@ public class UserVedioController {
 
         Pageable pageable = PageRequest.of(page, size);
         List<UserVedioDto> userVedios = userVedioService.findByUsercourseId(usercourseId, pageable);
-
+        
         if (userVedios != null && !userVedios.isEmpty()) {
+        	System.out.println(userVedios.getFirst());
             return new ResponseEntity<>(userVedios, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

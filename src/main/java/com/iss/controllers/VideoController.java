@@ -1,11 +1,10 @@
 package com.iss.controllers;
 
-
-
 import com.iss.Dto.VideoDto;
 import com.iss.Services.VedioService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,39 +23,82 @@ public class VideoController {
         this.vedioService = vedioService;
     }
 
+    // Adding video
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<?> addVideo(@RequestBody VideoDto videoDto) {
-        return ResponseEntity.ok(vedioService.add(videoDto));
+        try {
+            VideoDto addedVideo = vedioService.add(videoDto);
+            if (addedVideo != null) {
+                return ResponseEntity.ok(addedVideo);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Unable to add video.");
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
     }
 
+    // Updating video
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/update")
     public ResponseEntity<?> updateVideo(@RequestBody VideoDto videoDto) {
-        return ResponseEntity.ok(vedioService.update(videoDto));
+        try {
+            VideoDto updatedVideo = vedioService.update(videoDto);
+            if (updatedVideo != null) {
+                return ResponseEntity.ok(updatedVideo);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Video not found.");
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
     }
 
+    // Getting videos related to a course
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<VideoDto>> getVideos(@RequestParam int courseId, @RequestParam int size, @RequestParam int page) {
-        Pageable pageable = PageRequest.of(page, size);
-        List<VideoDto> videos = vedioService.findByCourseId(courseId, pageable);
-        return ResponseEntity.ok(videos);
+    public ResponseEntity<?> getVideoByCourseId(@RequestParam int courseId, @RequestParam int size, @RequestParam int page) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            List<VideoDto> videos = vedioService.findByCourseId(courseId, pageable);
+            if (!videos.isEmpty()) {
+                return ResponseEntity.ok(videos);
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No videos found for this course.");
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
     }
 
+    // Getting a specific video
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/get")
     public ResponseEntity<?> getVideo(@RequestParam int videoId) {
-        return ResponseEntity.ok(vedioService.find(videoId));
+        try {
+            VideoDto video = vedioService.find(videoId);
+            if (video != null) {
+                return ResponseEntity.ok(video);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Video not found.");
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
     }
 
+    // Deleting a video
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteVideo(@RequestParam int videoId) {
-        vedioService.delete(videoId);
-        Map<String, String> response = new HashMap<String,String>();
-        response.put("message", "Video Deletion Successful");
-        return ResponseEntity.ok(response);
-
+        try {
+            vedioService.delete(videoId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Video deleted successfully.");
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
     }
 }

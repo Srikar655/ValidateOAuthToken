@@ -21,17 +21,37 @@ public class CourseService {
 
     public CourseDto add(Course course) {
         try {
-            return CourseMapper.Instance.toDto(repos.save(course));
+        	Course c=repos.save(course);
+            return CourseMapper.Instance.toDto(c);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Error adding the course", ex);
         }
     }
-
+    public double getCoursePrice(int id) throws Exception
+    {
+    	try
+    	{
+    		Optional<Double> optionalprice=repos.getCoursePriceByCourseId(id);
+    		if(optionalprice.isPresent())
+    		{
+    			return repos.getCoursePriceByCourseId(id).get();
+    		}
+    		return 0;
+    	}catch(Exception ex)
+    	{
+    		ex.printStackTrace();
+    		throw new Exception("Error There is No Course Available");
+    	}
+    }
     public List<CourseDto> findAll() {
         List<CourseDto> list = null;
         try {
-            list = CourseMapper.Instance.toDtoList(repos.findAll());
+            List<Course> courselist = repos.findAll();
+            if(courselist!=null)
+            {
+            	list=CourseMapper.Instance.toDtoList(courselist);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Error fetching all courses", ex);
@@ -52,12 +72,30 @@ public class CourseService {
             throw new RuntimeException("Error fetching the course with id " + id, ex);
         }
     }
+    public Course findAndGetCourse(int id) {
+        try {
+            Optional<Course> courseOpt = repos.findById(id);
+            if (courseOpt.isPresent()) {
+                return courseOpt.get();
+            } else {
+                throw new RuntimeException("Course with id " + id + " not found");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error fetching the course with id " + id, ex);
+        }
+    }
 
     public CourseDto findThumbnail(int id) {
         try {
-            CourseDto dto = new CourseDto();
-            dto.setCoursethumbnail(repos.findCoursethumbnailById(id));
-            dto.setId(id);
+        	Optional<byte[]> optionalbytes=repos.findCoursethumbnailById(id);
+        	CourseDto dto=null;
+        	if(optionalbytes.isPresent())
+        	{
+        			dto = new CourseDto();
+        			dto.setCoursethumbnail(optionalbytes.get());
+        			dto.setId(id);
+        	}
             return dto;
         } catch (Exception ex) {
             ex.printStackTrace();

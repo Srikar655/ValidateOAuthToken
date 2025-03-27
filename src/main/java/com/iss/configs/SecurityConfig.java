@@ -2,23 +2,21 @@ package com.iss.configs;
 
 
 
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -33,46 +31,43 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.iss.Validators.*;
-import com.iss.models.User;
-import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
+@EnableAsync
 @EnableMethodSecurity
 public class SecurityConfig {
 
 	private final List<String> validAudiences;
-	private final RoleRepository roleRepos;
 	
 	private final CustomUserDetailsService userservice;
 	
-	public SecurityConfig(CustomUserDetailsService userservice,RoleRepository roleRepos)
+	public SecurityConfig(CustomUserDetailsService userservice)
 	{
 		 validAudiences= Arrays.asList(
 			        "950816388236-beh5nkicurvu1o30tcikbds4p7d481s4.apps.googleusercontent.com",
 			        "141367274358-radhhb6jmms5eu9j743u5i2bfchkdt2f.apps.googleusercontent.com"
 			    );
 		 this.userservice=userservice;
-		 this.roleRepos = roleRepos;
 	}
 	@Bean
      CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200"));  // Allowed origins
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));  // Allowed methods
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));  // Allowed headers
-        corsConfig.setAllowCredentials(true);  // Allow credentials (cookies, authorization headers)
+        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200"));  
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));  
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));  
+        corsConfig.setAllowCredentials(true);  
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);  // Apply to all endpoints
+        source.registerCorsConfiguration("/**", corsConfig); 
         
         return source;
     }
 
 	@Bean
     @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+     SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher(new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**")))
             .authorizeHttpRequests(authz -> authz
@@ -88,7 +83,7 @@ public class SecurityConfig {
 
 	@Bean
 	@Order(2)
-	public SecurityFilterChain privateFilterChain(HttpSecurity http) throws Exception {
+	 SecurityFilterChain privateFilterChain(HttpSecurity http) throws Exception {
 	    http
 	        .securityMatcher("/api/**")
 	        .authorizeHttpRequests(authz -> authz

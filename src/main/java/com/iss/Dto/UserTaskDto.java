@@ -1,5 +1,7 @@
 package com.iss.Dto;
 
+import com.iss.models.PaymentStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,12 +17,7 @@ public class UserTaskDto {
 
     private TasksDto task;
 	private UserVedioDto uservedio;
-    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.PENDING;
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-    public enum SubscriptionStatus {
-        PENDING,
-        ACTIVE,
-        CANCELLED,
-        COMPLETED
-    }
+
 }

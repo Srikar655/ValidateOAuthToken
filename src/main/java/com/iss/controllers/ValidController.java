@@ -13,7 +13,6 @@ import com.iss.models.User;
 
 
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,12 +45,16 @@ public class ValidController
 
         try {
             user = this.userService.loadUserByUsername(email);
-        } catch (UsernameNotFoundException e) {
-
-        	String name= jwt.getClaimAsString("name");
-    		String picture=jwt.getClaimAsString("picture");
-    		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
-			user=userService.add(u);
+            if(user==null)
+            {
+            	String name= jwt.getClaimAsString("name");
+        		String picture=jwt.getClaimAsString("picture");
+        		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
+    			user=userService.add(u);
+            }
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	return null;
         }
 
         return ResponseEntity.ok(user);
@@ -65,12 +68,17 @@ public class ValidController
 
         try {
             user = this.userService.loadUserByUsername(email);
-        } catch (UsernameNotFoundException e) {
-
-        	String name= jwt.getClaimAsString("name");
-    		String picture=jwt.getClaimAsString("picture");
-    		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
-			user=userService.add(u);
+            if(user==null)
+            {
+            	String name= jwt.getClaimAsString("name");
+        		String picture=jwt.getClaimAsString("picture");
+        		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
+    			user=userService.add(u);
+            }
+        } catch (Exception e) {
+        
+        	e.printStackTrace();
+        	return null;
         }
 
         return ResponseEntity.ok(user);

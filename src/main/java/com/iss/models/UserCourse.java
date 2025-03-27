@@ -36,10 +36,11 @@ public class UserCourse {
     private int id;
 
     @ManyToOne(fetch=FetchType.LAZY)
-	@JsonBackReference
+	@JsonBackReference("user-courses")
     @JoinColumn(name = "user_id", nullable = false,referencedColumnName="id")
     private User user;
 
+    
     @ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("course-usercourses")
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")
@@ -48,15 +49,14 @@ public class UserCourse {
     @JsonManagedReference
 	@OneToMany(mappedBy="usercourse",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<UserVedio> userVedios;
+    
+    @JsonManagedReference
+   	@OneToMany(mappedBy="usercourse",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+   	List<Payment> payments;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SubscriptionStatus subscriptionStatus = SubscriptionStatus.PENDING;
 
-    public enum SubscriptionStatus {
-        PENDING,
-        ACTIVE,
-        CANCELLED,
-        COMPLETED
-    }
+    
 }

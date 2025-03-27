@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.iss.models.PaymentStatus;
+
 
 
 @Data
@@ -31,11 +33,6 @@ public class PaymentDto {
 
     private LocalDateTime paymentDate;
 
-    public enum PaymentStatus {
-        PENDING,
-        COMPLETED,
-        FAILED
-    }
 
     public enum PaymentType {
     	COURSE,

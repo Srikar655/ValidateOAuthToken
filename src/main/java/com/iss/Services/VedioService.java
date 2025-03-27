@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -22,25 +23,59 @@ public class VedioService {
     }
 
     public VideoDto add(VideoDto vedio) {
-        VideoMapper mapper = VideoMapper.Instance;
-        return mapper.toDto(repos.save(mapper.toEntity(vedio)));
+        try {
+            VideoMapper mapper = VideoMapper.Instance;
+            return mapper.toDto(repos.save(mapper.toEntity(vedio)));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error adding Vedio", ex);
+        }
     }
 
     public List<VideoDto> add(List<Vedio> vedios) {
-        return VideoMapper.Instance.toDtoList(repos.saveAll(vedios));
+        try {
+            return VideoMapper.Instance.toDtoList(repos.saveAll(vedios));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error adding multiple Vedios", ex);
+        }
     }
 
     public List<VideoDto> findAll() {
-        return VideoMapper.Instance.toDtoList(repos.findAll());
+        try {
+            return VideoMapper.Instance.toDtoList(repos.findAll());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error fetching all Vedios", ex);
+        }
     }
 
     public VideoDto find(int id) {
-        return VideoMapper.Instance.toDto(repos.findById(id).orElse(null));
+        try {
+            Optional<Vedio> vedioOpt = repos.findById(id);
+            if (vedioOpt.isPresent()) {
+                return VideoMapper.Instance.toDto(vedioOpt.get());
+            } 
+                return null; // Return null if the Vedio is not found
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error fetching Vedio with id " + id, ex);
+        }
     }
 
     public List<VideoDto> findByCourseId(int courseId, Pageable pageable) {
-        List<Vedio> list = repos.findByCourseId(courseId, pageable).getContent();
-        return VideoMapper.Instance.toDtoList(list);
+        try {
+            Optional<Page<Vedio>> optionallist = repos.findByCourseId(courseId, pageable);
+            if(optionallist.isPresent())
+            {
+            	return VideoMapper.Instance.toDtoList(optionallist.get().getContent());
+            }
+            return null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error fetching Vedios by Course ID", ex);
+        }
     }
 
     public VideoDto update(VideoDto vedioDto) {
@@ -49,11 +84,11 @@ public class VedioService {
             if (existingVedio.isPresent()) {
                 Vedio existingEntity = existingVedio.get();
                 Vedio updatedEntity = VideoMapper.Instance.toEntity(vedioDto);
-                
+
                 BeanUtils.copyProperties(updatedEntity, existingEntity, "tasks", "uservedio");
                 return VideoMapper.Instance.toDto(repos.save(existingEntity));
             } else {
-                throw new RuntimeException("Vedio with id " + vedioDto.getId() + " not found, update failed.");
+                return null; // Return null if Vedio is not found
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -62,6 +97,15 @@ public class VedioService {
     }
 
     public void delete(int id) {
-        repos.deleteById(id);
+        try {
+            if (repos.existsById(id)) {
+                repos.deleteById(id);
+            } else {
+                throw new RuntimeException("Vedio with id " + id + " not found, delete failed.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error deleting Vedio with id " + id, ex);
+        }
     }
 }

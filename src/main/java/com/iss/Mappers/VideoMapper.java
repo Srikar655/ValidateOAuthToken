@@ -12,10 +12,12 @@ public interface VideoMapper {
 	VideoMapper Instance=Mappers.getMapper(VideoMapper.class);
 	@Mapping(target = "course", ignore = true)
 	@Mapping(target = "tasks", ignore = true)
+	@Mapping(target = "uservedio", ignore = true)
 	VideoDto toDto(Vedio video);
 	Vedio toEntity(VideoDto videoDto);
 	@Mapping(target = "course", ignore = true)
 	@Mapping(target = "tasks", ignore = true)
+	@Mapping(target = "uservedio", ignore = true)
 	List<VideoDto> toDtoList(List<Vedio> vedios);
 	List<Vedio> toEntityList(List<VideoDto> vedioDtos);
 }

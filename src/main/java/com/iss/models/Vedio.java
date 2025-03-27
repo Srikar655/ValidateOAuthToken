@@ -34,7 +34,7 @@ public class Vedio {
 	private double vedioprice;
 	private String vediotitle;
 	private String vediodescription;
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne
 	@JsonBackReference("course-videos")
 	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")

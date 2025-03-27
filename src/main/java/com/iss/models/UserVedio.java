@@ -48,15 +48,14 @@ public class UserVedio {
     @JsonManagedReference
 	@OneToMany(mappedBy="uservedio",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<UserTask> usertask;
+    
+    @JsonManagedReference
+	@OneToMany(mappedBy="uservedio",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+	List<Payment> payments;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.PENDING;
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-    public enum SubscriptionStatus {
-        PENDING,
-        ACTIVE,
-        CANCELLED,
-        COMPLETED 
-    }
+    
 }

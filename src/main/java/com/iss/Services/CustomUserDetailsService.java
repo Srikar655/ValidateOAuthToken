@@ -8,13 +8,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.iss.Dto.UserDto;
-import com.iss.Mappers.UserMapper;
+
 import com.iss.Repos.UserRepository;
 import com.iss.models.User;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,17 +26,20 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not exists by Username or Email"));
-
-        Set<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet());
-        return new org.springframework.security.core.userdetails.User(
-                usernameOrEmail,
-                 "",
-                authorities
-        );
+        Optional<User> optionaluser = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
+        if(optionaluser.isPresent())
+        {
+        	User user=optionaluser.get();
+	        Set<GrantedAuthority> authorities = user.getRoles().stream()
+	                .map(role -> new SimpleGrantedAuthority(role.getName()))
+	                .collect(Collectors.toSet());
+	        return new org.springframework.security.core.userdetails.User(
+	                usernameOrEmail,
+	                 "",
+	                authorities
+	        );
+        }
+        return null;
     }
     public org.springframework.security.core.userdetails.UserDetails add(User user)
 	{
@@ -60,6 +63,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 			return null;
 		}
 	}
+    public User update(User user)
+    {
+    	if(userRepository.existsById(user.getId()))
+    	{
+    		return this.userRepository.save(user);
+    	}
+    	return null;
+    }
     public Collection<? extends GrantedAuthority> getAuthorities(String email) {
         return userRepository.findRolesByUsernameOrEmail(email, email)
             .orElse(Collections.emptyList())  // Handle the case when roles are not found

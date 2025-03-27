@@ -3,15 +3,23 @@ package com.iss.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
-import com.iss.models.User;
-import com.iss.Services.RazorPayService;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.iss.Dto.UserCourseDto;
+import com.iss.Dto.UserVedioDto;
+import com.iss.Services.RazorPayForCourseService;
+import com.iss.Services.RazorPayForVideoPaymentService;
+
+
 
 
 
@@ -20,13 +28,28 @@ import com.iss.Services.RazorPayService;
 public class PaymentController {
 
     @Autowired
-    private RazorPayService paymentService;
+    private RazorPayForCourseService coursePaymentService;
     
-    @PostMapping("/api/create-order")
-    public ResponseEntity<?> createOrder(@RequestParam int courseId,@AuthenticationPrincipal Jwt jwt ) {
+    @Autowired
+    private RazorPayForVideoPaymentService videoPaymentService;
+
+
+    
+    @PostMapping("/api/create-coursesubscriptionorder")
+    public ResponseEntity<?> createCourseSubscriptionOrder(@RequestParam int courseId,@AuthenticationPrincipal Jwt jwt ) {
         try {
         	String email=jwt.getClaimAsString("email");
-            return ResponseEntity.ok(paymentService.createOrder(courseId,email));
+            return ResponseEntity.ok(coursePaymentService.createCourseSubscriptionOrder(courseId,email));
+         
+        } catch (Exception e) {
+        	e.printStackTrace();
+            return null;
+        }
+    }
+    @PostMapping("/api/generate-payment-id")
+    public ResponseEntity<?> creatVideoPaymenteOrder(@RequestParam int userVideoId,@AuthenticationPrincipal Jwt jwt) {
+        try {
+            return ResponseEntity.ok(videoPaymentService.createVideoPaymentOrderId(userVideoId,jwt.getClaimAsString("email")));
          
         } catch (Exception e) {
         	e.printStackTrace();
@@ -37,40 +60,45 @@ public class PaymentController {
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,
             @RequestHeader("X-Razorpay-Signature") String razorpaySignature) {
-
-    	System.out.println("*********");
-    	System.out.println("**WEbhook****");
-    	System.out.println("*********");
-        String secret = "mysecret"; 
-        
-
         JSONObject jsonPayload = new JSONObject(payload);
         String eventType = jsonPayload.getString("event");
-
         if ("payment.captured".equals(eventType)) {
-            JSONObject paymentData = jsonPayload.getJSONObject("payload").getJSONObject("payment").getJSONObject("entity");
-            JSONObject metaData = paymentData.getJSONObject("notes");
-            String email = metaData.getString("user_email");
-            int courseId = Integer.parseInt(metaData.getString("course_id"));
-            
-            // Process payment logic here
-            System.out.println("Email: " + email);
-            System.out.println("Course ID: " + courseId);
 
-            return ResponseEntity.ok("Payment captured successfully!");
+            return ResponseEntity.ok("Webhook received successfully!");
         } else {
             return ResponseEntity.ok("Unhandled event: " + eventType);
         }
     }
 
-    @PostMapping("/payment/verify")
-    public Map<String, String> verifyPayment(@RequestBody Map<String, String> paymentDetails) {
-        Map<String, String> response = new HashMap<>();
+    
+    @PostMapping("api/coursepayment/verify")
+    public Map<String, Object> courseVerifyPayment(@RequestBody Map<String, String> paymentDetails) {
+        Map<String, Object> response = new HashMap<>();
         
         try {
-            boolean isValidSignature =paymentService.verifyPayment(paymentDetails); 
-            if (isValidSignature) {
+            UserCourseDto userCourse =coursePaymentService.verifyPayment(paymentDetails); 
+            if (userCourse != null) {
                 response.put("status", "success");
+                response.put("UserCourse", userCourse);
+            } else {
+                response.put("status", "failure");
+            }
+        } catch (Exception e) {
+            response.put("status", "failure");
+            e.printStackTrace();
+        }
+
+        return response;
+    }
+    @PostMapping("api/verify-payment")
+    public Map<String, Object> videoPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            UserVedioDto userVedio =videoPaymentService.verifyPayment(paymentDetails); 
+            if (userVedio != null) {
+                response.put("status", "success");
+                response.put("UserVideo", userVedio);
             } else {
                 response.put("status", "failure");
             }

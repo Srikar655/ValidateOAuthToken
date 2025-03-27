@@ -47,7 +47,7 @@ public class User {
 
     private String phonenumber;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -61,7 +61,7 @@ public class User {
     @Column(nullable = false)
     private Timestamp createdAt;
 
-    @JsonManagedReference
+    @JsonManagedReference("user-courses")
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UserCourse> userCourses;
 
