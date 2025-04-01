@@ -20,23 +20,40 @@ public class TaskImageController {
         this.taskImageService = taskImageService;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<TaskImageDto>> getTaskImages(@RequestParam int taskId) {
-        List<TaskImageDto> taskImages = taskImageService.findByTaskId(taskId);
-        return ResponseEntity.ok(taskImages);
+    public ResponseEntity<?> getTaskImages(@RequestParam int taskId) {
+    	try
+    	{
+    		List<TaskImageDto> taskImages = taskImageService.findByTaskId(taskId);
+    		return ResponseEntity.ok(taskImages);
+    	}catch(Exception ex) {
+    		return ResponseEntity.status(500).body("Error getting the task Images: " + ex.getMessage());
+    	}
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteTaskImage(@RequestParam int imageId) {
-        taskImageService.delete(imageId);
-        return ResponseEntity.ok("Task Image Deleted Successfully");
+    	
+    	try
+    	{
+    		taskImageService.delete(imageId);
+            return ResponseEntity.ok("Task Image Deleted Successfully");
+    	}catch(Exception ex) {
+    		return ResponseEntity.status(500).body("Error deleting the task Images: " + ex.getMessage());
+    	}
+        
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/save")
     public ResponseEntity<?> saveTaskImage(@RequestBody TaskImages taskImageDto) {
-        TaskImageDto savedTaskImage = taskImageService.save(taskImageDto);
-        return ResponseEntity.ok(savedTaskImage);
+    	try
+    	{
+            TaskImageDto savedTaskImage = taskImageService.save(taskImageDto);
+            return ResponseEntity.ok(savedTaskImage);
+    	}catch(Exception ex) {
+    		return ResponseEntity.status(500).body("Error saving the task Images: " + ex.getMessage());
+    	}
     }
 }

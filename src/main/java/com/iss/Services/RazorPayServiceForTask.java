@@ -10,21 +10,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.iss.Dto.UserVedioDto;
-import com.iss.Mappers.UserVedioMapper;
+import com.iss.Dto.UserTaskDto;
+import com.iss.Mappers.UserTaskMapper;
 import com.iss.Repos.PaymentRepository;
 import com.iss.Repos.UserRepository;
-import com.iss.Repos.UserVideosRepository;
-import com.iss.models.AccessStatus;
+import com.iss.Repos.UserTaskRepsitory;
 import com.iss.models.Payment;
 import com.iss.models.PaymentStatus;
 import com.iss.models.User;
 import com.iss.models.UserTask;
-import com.iss.models.UserVedio;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -34,12 +33,12 @@ import jakarta.annotation.PostConstruct;
 
 
 @Service
-public class RazorPayForVideoPaymentService {
+public class RazorPayServiceForTask {
 
     private RazorpayClient client;
     
     @Autowired
-    private UserVideosRepository userVedioRepos;
+    private UserTaskRepsitory userTaskRepso;
     @Autowired
     private PaymentRepository paymentRepos;
     
@@ -63,17 +62,17 @@ public class RazorPayForVideoPaymentService {
         this.client = new RazorpayClient(apiKey, apiSecret);
     }
 
-    public double fetchUserVideoPrice(int userVideoId)
+    public double fetchUserTaskPrice(int userVideoId)
     {
-    	Optional<Double> price= this.userVedioRepos.getUserVideoPriceById(userVideoId);
+    	Optional<Double> price= this.userTaskRepso.getUserTaskPriceById(userVideoId);
     	if(price.isPresent())
     	{
     		return price.get();
     	}
     	return 0;
     }
-    public Map<String,Object> createVideoPaymentOrderId(int userVideoId,String email) throws Exception {
-    	double amount=fetchUserVideoPrice(userVideoId);
+    public Map<String,Object> createTaskPaymentOrderId(int userTaskId,String email) throws Exception {
+    	double amount=fetchUserTaskPrice(userTaskId);
         Map<String,Object> map=new HashMap<String,Object>();
     	if(amount!=0)
     	{
@@ -84,7 +83,7 @@ public class RazorPayForVideoPaymentService {
 	        orderRequest.put("receipt", "txn_123456");
 	
 	        JSONObject metadata = new JSONObject();
-	        metadata.put("userVideoId",  userVideoId);
+	        metadata.put("userTaskId",  userTaskId);
 	        metadata.put("email",  email);
 	        orderRequest.put("notes", metadata);
 	        
@@ -95,7 +94,7 @@ public class RazorPayForVideoPaymentService {
     	}
     	return null;
     }
-	public UserVedioDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
+	public UserTaskDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
 		try {
             String razorpayOrderId = paymentDetails.get("orderId");
             String razorpayPaymentId = paymentDetails.get("paymentId");
@@ -113,27 +112,22 @@ public class RazorPayForVideoPaymentService {
         }
 		return null;		
 	}
-	private UserVedioDto processPaymentAsync(JSONObject paymentData) {
+	private UserTaskDto processPaymentAsync(JSONObject paymentData) {
 		try
 		{
 	        JSONObject metaData = paymentData.getJSONObject("notes");
-	        int userVideoId = metaData.getInt("userVideoId");
+	        int userVideoId = metaData.getInt("userTaskId");
 	        String useremail=metaData.getString("email");
 	        Optional<User> optionalUser=userRepos.findByUsernameOrEmail(useremail, useremail);
 	        if(optionalUser.isPresent())
 	        {
-		        Optional<UserVedio> optionaluservideo = this.userVedioRepos.findById(userVideoId);
-		        if(optionaluservideo.isPresent())
+		        Optional<UserTask> optionalusertask = this.userTaskRepso.findById(userVideoId);
+		        if(optionalusertask.isPresent())
 		        {
-		        	UserVedio uservideo=optionaluservideo.get();
+		        	UserTask usertask=optionalusertask.get();
 		        	User user=optionalUser.get();
-		        	uservideo.setPaymentStatus(PaymentStatus.COMPLETED);
-		        	List<UserTask> listtask=uservideo.getUsertask();
-		        	if(listtask!=null && !listtask.isEmpty())
-		        	{
-		        		listtask.getFirst().setAccessStatus(AccessStatus.UNLOCKED);
-		        	}
-		        	UserVedio newuservideo=this.userVedioRepos.save(uservideo);
+		        	usertask.setPaymentStatus(PaymentStatus.COMPLETED);
+		        	UserTask newusertask=this.userTaskRepso.save(usertask);
 		        	long createdAt = paymentData.getLong("created_at");
 		            LocalDateTime paymentDateTime = LocalDateTime.ofEpochSecond(createdAt, 0, ZoneOffset.UTC);
 
@@ -145,9 +139,9 @@ public class RazorPayForVideoPaymentService {
 		                    .currency(paymentData.getString("currency"))
 		                    .fee(fee)
 		                    .tax(tax)
-		                    .uservedio(newuservideo)
+		                     .usertask(newusertask)
 		                    .paymentStatus(PaymentStatus.COMPLETED)
-		                    .paymentFor(Payment.PaymentType.EPISODE)
+		                    .paymentFor(Payment.PaymentType.TASK)
 		                    .paymentDate(paymentDateTime)
 		                    .paymentIdRazorpay(paymentData.getString("id"))
 		                    .orderId(paymentData.optString("order_id"))
@@ -161,9 +155,9 @@ public class RazorPayForVideoPaymentService {
 		                    .user(user) // Use your service method
 		                    .build();
 		        	this.paymentRepos.save(payment);
-		        	UserVedioDto uservideodto= UserVedioMapper.Instance.toDto(newuservideo);
-		        	uservideodto.getVedio().setVideourl(newuservideo.getVedio().getVideourl());
-		        	return uservideodto;
+		        	UserTaskDto usertaskdto= UserTaskMapper.Instance.toDto(newusertask);
+		        	BeanUtils.copyProperties(newusertask, usertaskdto,"uservedio","payments");
+		        	return usertaskdto;
 		        }
 		        return null;
 	        }

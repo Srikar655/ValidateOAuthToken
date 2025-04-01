@@ -54,7 +54,7 @@ public class ValidController
             }
         } catch (Exception e) {
         	e.printStackTrace();
-        	return null;
+        	return ResponseEntity.status(500).body("Error in the userinfo: " + e.getMessage());
         }
 
         return ResponseEntity.ok(user);
@@ -78,7 +78,7 @@ public class ValidController
         } catch (Exception e) {
         
         	e.printStackTrace();
-        	return null;
+        	return ResponseEntity.status(500).body("Error logging the user: " + e.getMessage());
         }
 
         return ResponseEntity.ok(user);

@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
 
-import com.iss.models.CourseCategory;
-import com.iss.models.UserCourse;
 import com.iss.models.Vedio;
 @Data
 @NoArgsConstructor
@@ -22,7 +20,7 @@ public class CourseDto {
 	private String courseTrailer;
 	private String courseDescription;
 	private List<String> courseFeatures;
-	private List<UserCourse> usercourse;
-	private CourseCategory courseCategory;
+	private List<UserCourseDto> usercourse;
+	private CourseCategoryDTO courseCategory;
 
 }

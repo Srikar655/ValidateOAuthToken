@@ -48,7 +48,7 @@ public class Course {
 	@JsonManagedReference("course-usercourses")
 	@OneToMany(mappedBy="course",cascade= {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REMOVE},orphanRemoval=true,fetch=FetchType.LAZY)
 	private List<UserCourse> usercourse;
-	@JsonBackReference("course-category")
+	@JsonBackReference("category-course")
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(columnDefinition="coursecategory-id",referencedColumnName="id", nullable = false)
 	private CourseCategory courseCategory;

@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,8 +23,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -65,40 +62,22 @@ public class SecurityConfig {
         return source;
     }
 
-	@Bean
-    @Order(1)
-     SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher(new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**")))
-            .authorizeHttpRequests(authz -> authz
-                .anyRequest().permitAll()
-            )
-            .csrf(csrf -> csrf.disable()) // Adjust based on your CSRF requirements
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .oauth2ResourceServer(oauth2 -> oauth2.disable()); // Disable JWT processing
+	 @Bean
+	    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));  // Use custom CORS configuration
+	    	http
+	                .authorizeHttpRequests(authorize -> authorize
+	                                .requestMatchers("/api/**").authenticated()  // Protect specific endpoints
+	                                .anyRequest().permitAll()  // Allow other requests (adjust as needed)
+	                )
+	                .oauth2ResourceServer(oauth2 -> oauth2
+	                                .jwt(jwt -> jwt
+	                                                .jwtAuthenticationConverter(jwtAuthenticationConverter()) // Convert JWT into authentication object
+	                                )
+	                );
 
-        return http.build();
-    }
-
-
-	@Bean
-	@Order(2)
-	 SecurityFilterChain privateFilterChain(HttpSecurity http) throws Exception {
-	    http
-	        .securityMatcher("/api/**")
-	        .authorizeHttpRequests(authz -> authz
-	            .requestMatchers("/payment/webhook").permitAll() // Permit specific URLs
-	            .anyRequest().authenticated() // All other requests under "/api/**" require authentication
-	        )
-	        .oauth2ResourceServer(oauth2 -> oauth2
-	            .jwt(jwt -> jwt
-	                .jwtAuthenticationConverter(jwtAuthenticationConverter()) // Enable JWT processing for OAuth2
-	            )
-	        )
-	        .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
-	    return http.build();
-	}
+	        return http.build();
+	    }
     @Bean
      JwtDecoder jwtDecoder() {
         // Use Google's public keys for validating the JWT token

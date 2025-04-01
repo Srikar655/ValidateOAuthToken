@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.iss.Dto.TasksDto;
 import com.iss.Mappers.TasksMapper;
 import com.iss.Repos.TasksRepository;
+import com.iss.models.TaskImages;
 import com.iss.models.Tasks;
 
 @Service
@@ -24,7 +25,7 @@ public class TasksService {
 
     public TasksDto add(Tasks task) {
         try {
-            return TasksMapper.Instance.toDto(repos.save(task));
+        	return TasksMapper.Instance.toDto(repos.save(task));
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Error adding Task", ex);
@@ -55,7 +56,7 @@ public class TasksService {
             if (taskOpt.isPresent()) {
                 return TasksMapper.Instance.toDto(taskOpt.get());
             } else {
-                return null; // Return null if the Task is not found
+                return null; 
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -82,10 +83,17 @@ public class TasksService {
             Optional<Tasks> existingTaskOpt = repos.findById(task.getId());
             if (existingTaskOpt.isPresent()) {
                 Tasks existingTask = existingTaskOpt.get();
-                BeanUtils.copyProperties(task, existingTask, "usertask");
+                BeanUtils.copyProperties(task, existingTask, "usertask", "taskimages"); 
+                if (task.getTaskimages() != null) {
+                    existingTask.getTaskimages().clear(); 
+                    for (TaskImages image : task.getTaskimages()) {
+                        image.setTask(existingTask); 
+                        existingTask.getTaskimages().add(image);
+                    }
+                }
                 return TasksMapper.Instance.toDto(repos.save(existingTask));
             } else {
-                return null; // Return null if Task is not found
+                return null; 
             }
         } catch (Exception ex) {
             ex.printStackTrace();

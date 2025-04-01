@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserVideosRepository extends JpaRepository<UserVedio, Integer> {
+	@Query(value = "SELECT * FROM user_vedio WHERE usercourse_id = :usercourseId", nativeQuery = true)
     Page<UserVedio> findByUsercourseId(int usercourseId, Pageable pageable);
     
     @Query("SELECT uv.vedio.vedioprice FROM UserVedio uv where uv.id=:userVideoId")

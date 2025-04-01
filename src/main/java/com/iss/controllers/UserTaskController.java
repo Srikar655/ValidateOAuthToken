@@ -42,9 +42,9 @@ public class UserTaskController {
 
     // Get UserTasks by UserVedio ID (Paginated)
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @GetMapping("/uservedio/{userVedioId}")
+    @GetMapping("/usertasks-byvedioId")
     public ResponseEntity<List<UserTaskDto>> getUserTasksByUserVedioId(
-            @PathVariable int userVedioId,
+            @RequestParam int userVedioId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 

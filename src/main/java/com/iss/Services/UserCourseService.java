@@ -1,7 +1,6 @@
 package com.iss.Services;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -11,10 +10,8 @@ import com.iss.Dto.UserCourseDto;
 import com.iss.Mappers.UserCourseMapper;
 import com.iss.Repos.CourseRepository;
 import com.iss.Repos.UserCourseRepository;
-import com.iss.Repos.UserRepository;
 import com.iss.models.Course;
 import com.iss.models.SubscriptionStatus;
-import com.iss.models.User;
 import com.iss.models.UserCourse;
 
 
@@ -22,11 +19,9 @@ import com.iss.models.UserCourse;
 public class UserCourseService {
 	private final UserCourseRepository repos;
 	private final CourseRepository courserepos;
-	private final UserRepository userrepos;
-	public UserCourseService(UserCourseRepository repos,CourseRepository courserepos,UserRepository userrepos)
+	public UserCourseService(UserCourseRepository repos,CourseRepository courserepos)
 	{
 		this.repos=repos;
-		this.userrepos=userrepos;
 		this.courserepos=courserepos;
 	}
 	public UserCourseDto add(UserCourse user)
@@ -70,7 +65,7 @@ public class UserCourseService {
 	{
 		try
 		{
-			Optional<UserCourse> usercourse=repos.findByCourseId(id);
+			Optional<UserCourse> usercourse=repos.findByCourseIdAndEmail(id,email);
 			if(usercourse.isPresent())
 			{
 				return UserCourseMapper.Instance.toDto(usercourse.get());

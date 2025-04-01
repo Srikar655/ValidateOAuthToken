@@ -12,8 +12,8 @@ import com.iss.models.UserCourse;
 @Repository
 public interface UserCourseRepository extends JpaRepository<UserCourse, Integer> {
 	
-	@Query("SELECT uc FROM UserCourse uc WHERE uc.course.id = :courseId")
-	Optional<UserCourse> findByCourseId(int courseId);
+	@Query("SELECT uc FROM UserCourse uc WHERE uc.course.id = :courseId AND uc.user.email = :email")
+	Optional<UserCourse> findByCourseIdAndEmail(int courseId,String email);
 
 
 }

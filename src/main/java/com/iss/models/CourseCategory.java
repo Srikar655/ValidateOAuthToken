@@ -26,7 +26,7 @@ public class CourseCategory {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
 	private String category;
-	@JsonManagedReference("course-category")
+	@JsonManagedReference("category-course")
 	@OneToMany(fetch=FetchType.LAZY,cascade= {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REFRESH})
 	private List<Course> course;
 }

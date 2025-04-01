@@ -35,7 +35,8 @@ public class TaskController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Unable to add task.");
             }
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        	ex.printStackTrace();
+        	return ResponseEntity.status(500).body("Error adding the task: " + ex.getMessage());
         }
     }
 
@@ -51,7 +52,7 @@ public class TaskController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Task not found.");
             }
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        	return ResponseEntity.status(500).body("Error updating the task: " + ex.getMessage());
         }
     }
 
@@ -72,7 +73,6 @@ public class TaskController {
         }
     }
 
-    // Specific task ni get cheyyadam
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/get")
     public ResponseEntity<?> getTask(@RequestParam int taskId) {

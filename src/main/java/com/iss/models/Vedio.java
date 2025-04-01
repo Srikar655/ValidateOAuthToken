@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,9 +32,8 @@ public class Vedio {
 	private double vedioprice;
 	private String vediotitle;
 	private String vediodescription;
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("course-videos")
-	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")
 	private Course course;
 	@OneToMany(mappedBy="video",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)

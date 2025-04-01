@@ -6,6 +6,7 @@ import com.iss.Dto.CourseDto;
 import com.iss.Services.CourseService;
 import com.iss.models.Course;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +41,13 @@ public class CourseController {
     public ResponseEntity<?> updateCourse(@RequestBody Course course) {
         try {
             CourseDto c = courseService.update(course);
-            return ResponseEntity.ok(c);
+            if(c!=null) {
+            	return ResponseEntity.ok(c);
+            }
+            else
+            {
+            	return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Video not found.");
+            }
         } catch (Exception ex) {
         	ex.printStackTrace();
             return ResponseEntity.status(500).body("Error updating the course: " + ex.getMessage());
@@ -87,6 +94,7 @@ public class CourseController {
     @GetMapping("/findCourseThumbnail")
     public ResponseEntity<?> getCourseThumbnail(@RequestParam int courseId) {
         try {
+        	System.out.println("Finding course thumnail");
             return ResponseEntity.ok(courseService.findThumbnail(courseId));
         } catch (Exception ex) {
         	ex.printStackTrace();

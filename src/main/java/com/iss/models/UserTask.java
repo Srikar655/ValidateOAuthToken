@@ -6,7 +6,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,21 +35,33 @@ public class UserTask {
 
     @ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("task-usertasks")
-	@Basic(fetch=FetchType.LAZY)
 	@JoinColumn(name="tasks_id",nullable=false,referencedColumnName="id")
     private Tasks task;
     
     @ManyToOne(fetch=FetchType.LAZY)
-	@JsonBackReference
-	@Basic(fetch=FetchType.LAZY)
+	@JsonBackReference("uservedio-usertasks")
 	@JoinColumn(name="uservedio_id",nullable=false,referencedColumnName="id")
 	private UserVedio uservedio;
     
-    @JsonManagedReference
+    @JsonManagedReference("usertask-payments")
 	@OneToMany(mappedBy="usertask",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-	List<Payment> payments;
+	private List<Payment> payments;
+    
+    @JsonManagedReference("usertask-usersolutions")
+   	@OneToMany(mappedBy="usertask",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
+   	private List<UsersTaskSolution> usersolution;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskProgress taskProgress = TaskProgress.PENDING;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccessStatus accessStatus = AccessStatus.LOCKED;
+
+    
 }

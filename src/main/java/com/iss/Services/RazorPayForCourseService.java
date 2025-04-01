@@ -17,14 +17,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.iss.Dto.UserCourseDto;
-import com.iss.Mappers.UserCourseMapper;
 import com.iss.Repos.CourseRepository;
 import com.iss.Repos.PaymentRepository;
 import com.iss.Repos.UserRepository;
+import com.iss.models.AccessStatus;
 import com.iss.models.Course;
 import com.iss.models.Payment;
 import com.iss.models.PaymentStatus;
 import com.iss.models.SubscriptionStatus;
+import com.iss.models.TaskProgress;
 import com.iss.models.Tasks;
 import com.iss.models.User;
 import com.iss.models.UserCourse;
@@ -138,18 +139,21 @@ public class RazorPayForCourseService {
                     UserVedio userVedio = UserVedio.builder()
                             .vedio(v)
                             .usercourse(usercourse)
-                            .paymentStatus(PaymentStatus.PENDING)
+                            .paymentStatus(PaymentStatus.PENDING).accessStatus(AccessStatus.LOCKED)
                             .build();
 
                     List<UserTask> userTasks = new ArrayList<>();
                     for (Tasks t : v.getTasks()) {
-                        userTasks.add(UserTask.builder().task(t).uservedio(userVedio).paymentStatus(PaymentStatus.PENDING).build());
+                        userTasks.add(UserTask.builder().task(t).uservedio(userVedio).paymentStatus(PaymentStatus.PENDING).taskProgress(TaskProgress.PENDING).accessStatus(AccessStatus.LOCKED).build());
                     }
                     userVedio.setUsertask(userTasks);
                     return userVedio;
                 })
                 .collect(Collectors.toList());
-
+        if(userVedios!=null && !userVedios.isEmpty())
+        {
+        	userVedios.getFirst().setAccessStatus(AccessStatus.UNLOCKED);
+        }
         usercourse.setUserVedios(userVedios);
         UserCourseDto newusercourse=this.usercourseService.add(usercourse);
         long createdAt = paymentData.getLong("created_at");

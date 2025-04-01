@@ -24,27 +24,23 @@ public class Payment {
     @GeneratedValue
     private int paymentId;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
     @JsonBackReference
-    @Basic(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false, referencedColumnName="id")
     private User user;
     
-    @ManyToOne
-    @JsonBackReference
-    @Basic(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JsonBackReference("usercourse-payments")
     @JoinColumn(name="usercourse_id", nullable=true, referencedColumnName="id")
     private UserCourse usercourse;
     
-    @ManyToOne
-    @JsonBackReference
-    @Basic(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JsonBackReference("uservedio-payments")
     @JoinColumn(name="uservideo_id", nullable=true, referencedColumnName="id")
     private UserVedio uservedio;
 
-    @ManyToOne
-    @JsonBackReference
-    @Basic(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JsonBackReference("usertask-payments")
     @JoinColumn(name="usertask_id", nullable=true, referencedColumnName="id")
     private UserTask usertask;
     

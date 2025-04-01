@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.iss.Dto.UserCourseDto;
+import com.iss.Dto.UserTaskDto;
 import com.iss.Dto.UserVedioDto;
 import com.iss.Services.RazorPayForCourseService;
 import com.iss.Services.RazorPayForVideoPaymentService;
+import com.iss.Services.RazorPayServiceForTask;
 
 
 
@@ -32,6 +34,9 @@ public class PaymentController {
     
     @Autowired
     private RazorPayForVideoPaymentService videoPaymentService;
+    
+    @Autowired
+    private RazorPayServiceForTask taskPaymentService;
 
 
     
@@ -43,13 +48,23 @@ public class PaymentController {
          
         } catch (Exception e) {
         	e.printStackTrace();
-            return null;
+        	return ResponseEntity.status(500).body("Error adding the Payments: " + e.getMessage());
         }
     }
-    @PostMapping("/api/generate-payment-id")
+    @PostMapping("/api/generate-videopayment-id")
     public ResponseEntity<?> creatVideoPaymenteOrder(@RequestParam int userVideoId,@AuthenticationPrincipal Jwt jwt) {
         try {
             return ResponseEntity.ok(videoPaymentService.createVideoPaymentOrderId(userVideoId,jwt.getClaimAsString("email")));
+         
+        } catch (Exception e) {
+        	e.printStackTrace();
+            return null;
+        }
+    }
+    @PostMapping("/api/generate-taskpayment-id")
+    public ResponseEntity<?> createTaskPaymetOrder(@RequestParam int userTaskId,@AuthenticationPrincipal Jwt jwt) {
+        try {
+            return ResponseEntity.ok(taskPaymentService.createTaskPaymentOrderId(userTaskId,jwt.getClaimAsString("email")));
          
         } catch (Exception e) {
         	e.printStackTrace();
@@ -86,11 +101,12 @@ public class PaymentController {
         } catch (Exception e) {
             response.put("status", "failure");
             e.printStackTrace();
+            
         }
 
         return response;
     }
-    @PostMapping("api/verify-payment")
+    @PostMapping("api/videoverify-payment")
     public Map<String, Object> videoPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
         Map<String, Object> response = new HashMap<>();
         
@@ -99,6 +115,25 @@ public class PaymentController {
             if (userVedio != null) {
                 response.put("status", "success");
                 response.put("UserVideo", userVedio);
+            } else {
+                response.put("status", "failure");
+            }
+        } catch (Exception e) {
+            response.put("status", "failure");
+            e.printStackTrace();
+        }
+
+        return response;
+    }
+    @PostMapping("api/taskverify-payment")
+    public Map<String, Object> taskPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            UserTaskDto userTask =taskPaymentService.verifyPayment(paymentDetails); 
+            if (userTask != null) {
+                response.put("status", "success");
+                response.put("UserTask", userTask);
             } else {
                 response.put("status", "failure");
             }

@@ -65,7 +65,7 @@ public class CourseService {
             if (courseOpt.isPresent()) {
                 return CourseMapper.Instance.toDto(courseOpt.get());
             } else {
-                throw new RuntimeException("Course with id " + id + " not found");
+               return null;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -78,7 +78,7 @@ public class CourseService {
             if (courseOpt.isPresent()) {
                 return courseOpt.get();
             } else {
-                throw new RuntimeException("Course with id " + id + " not found");
+               return null;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -111,7 +111,7 @@ public class CourseService {
             	BeanUtils.copyProperties(course,c ,"usercourse","vedios");
                 return CourseMapper.Instance.toDto(repos.save(c));
             } else {
-                throw new RuntimeException("Course with id " + course.getId() + " not found, update failed");
+                return null;
             }
         } catch (Exception ex) {
             ex.printStackTrace();

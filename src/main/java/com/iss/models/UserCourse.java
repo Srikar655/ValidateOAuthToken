@@ -46,13 +46,13 @@ public class UserCourse {
 	@JoinColumn(name="course_id",nullable=false,referencedColumnName="id")
     private Course course;
     
-    @JsonManagedReference
+    @JsonManagedReference("usercourse-uservedios")
 	@OneToMany(mappedBy="usercourse",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<UserVedio> userVedios;
     
-    @JsonManagedReference
+    @JsonManagedReference("usercourse-payments")
    	@OneToMany(mappedBy="usercourse",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-   	List<Payment> payments;
+   	private List<Payment> payments;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

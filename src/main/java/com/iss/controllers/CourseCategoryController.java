@@ -35,17 +35,27 @@ public class CourseCategoryController {
 	    }
 	    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	    @GetMapping("/{id}")
-	    public ResponseEntity<CourseCategory> getCourseCategoryById(@PathVariable int id) {
-	        Optional<CourseCategory> courseCategory = courseCategoryService.getCourseCategoryById(id);
-	        return courseCategory.map(ResponseEntity::ok)
-	            .orElseGet(() -> ResponseEntity.notFound().build());
+	    public ResponseEntity<?> getCourseCategoryById(@PathVariable int id) {
+	    	try {
+	    		CourseCategory courseCategory = courseCategoryService.getCourseCategoryById(id);
+	    		return ResponseEntity.ok(courseCategory);
+	    	}catch(Exception ex) {
+	    		ex.printStackTrace();
+	    		return ResponseEntity.status(500).body("Error adding the course: " + ex.getMessage());
+	    	}
+	        
 	    }
-
-	    // Create a new course category
 	    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	    @PostMapping
-	    public CourseCategory createCourseCategory(@RequestBody CourseCategory courseCategory) {
-	        return courseCategoryService.saveOrUpdateCourseCategory(courseCategory);
+	    public ResponseEntity<?> createCourseCategory(@RequestBody CourseCategory courseCategory) {
+	    	try {
+	    		System.out.println(courseCategory);
+	    		return ResponseEntity.ok(courseCategoryService.saveOrUpdateCourseCategory(courseCategory));
+	        } catch (Exception ex) {
+	        	ex.printStackTrace();
+	    		return ResponseEntity.status(500).body("Error adding the course: " + ex.getMessage());
+	        }
+	        
 	    }
 
 	    // Update an existing course category
@@ -63,8 +73,15 @@ public class CourseCategoryController {
 	    // Delete a course category by ID
 	    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	    @DeleteMapping("/{id}")
-	    public ResponseEntity<Void> deleteCourseCategory(@PathVariable int id) {
-	        courseCategoryService.deleteCourseCategoryById(id);
-	        return ResponseEntity.noContent().build();
+	    public ResponseEntity<?> deleteCourseCategory(@PathVariable int id) {
+	    	
+	    	try {
+	    		courseCategoryService.deleteCourseCategoryById(id);
+		        return ResponseEntity.noContent().build();
+	        } catch (Exception ex) {
+	        	ex.printStackTrace();
+	    		return ResponseEntity.status(500).body("Error adding the course: " + ex.getMessage());
+	        }
+	        
 	    }
 }

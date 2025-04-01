@@ -69,10 +69,10 @@ public class UserVedioController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
+        System.out.println("Fetching Videos");
         List<UserVedioDto> userVedios = userVedioService.findByUsercourseId(usercourseId, pageable);
         
         if (userVedios != null && !userVedios.isEmpty()) {
-        	System.out.println(userVedios.getFirst());
             return new ResponseEntity<>(userVedios, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

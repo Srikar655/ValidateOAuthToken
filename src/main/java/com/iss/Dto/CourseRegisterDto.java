@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 
-import com.iss.models.Vedio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,5 +18,5 @@ public class CourseRegisterDto {
 	private int id;
 	private String coursename;
 	private double courseprice;
-	private List<Vedio> vedios;
+	private List<VideoDto> vedios;
 }

@@ -2,7 +2,6 @@ package com.iss.Dto;
 
 import java.util.List;
 
-import com.iss.models.TaskImages;
 import com.iss.models.UserTask;
 import com.iss.models.Vedio;
 
@@ -20,7 +19,7 @@ public class TasksDto {
 	private String task;
 	private String taskurl;
 	private double taskprice;
-	private List<TaskImages> taskimages;
+	private List<TaskImageDto> taskimages;
 	private Vedio video;
 	private List<UserTask> usertask;
 

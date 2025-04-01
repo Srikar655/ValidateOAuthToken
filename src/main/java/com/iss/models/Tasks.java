@@ -27,7 +27,7 @@ import lombok.ToString;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude= {"taskimages"})
+@ToString(exclude= {"taskimages","usertask"})
 @Builder
 public class Tasks {
 	@Id
@@ -36,7 +36,7 @@ public class Tasks {
 	private String task;
 	private String taskurl;
 	@OneToMany(mappedBy="task",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
-	@JsonManagedReference
+	@JsonManagedReference("task-taskimages")
 	private List<TaskImages> taskimages;
 	private double taskprice;
 	@ManyToOne(fetch=FetchType.LAZY)
