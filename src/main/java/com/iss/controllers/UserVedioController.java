@@ -4,6 +4,7 @@ import com.iss.Dto.UserVedioDto;
 import com.iss.Services.UserVedioService;
 import com.iss.models.UserVedio;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class UserVedioController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping
-    public ResponseEntity<List<UserVedioDto>> getAllUserVedios(
+     public ResponseEntity<List<UserVedioDto>> getAllUserVedios(
             @RequestParam(defaultValue = "0") int page, 
             @RequestParam(defaultValue = "10") int size) {
 
@@ -69,7 +70,6 @@ public class UserVedioController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        System.out.println("Fetching Videos");
         List<UserVedioDto> userVedios = userVedioService.findByUsercourseId(usercourseId, pageable);
         
         if (userVedios != null && !userVedios.isEmpty()) {

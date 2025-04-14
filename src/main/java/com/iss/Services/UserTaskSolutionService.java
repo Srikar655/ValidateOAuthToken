@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +13,7 @@ import com.iss.Dto.UserTaskSolutionImagesDto;
 import com.iss.Mappers.UserTaskSolutionMapper;
 import com.iss.Repos.UserTaskSolutionRepos;
 import com.iss.models.UsersTaskSolution;
+import com.iss.models.CorrectionStatus;
 import com.iss.models.TaskProgress;
 import com.iss.models.UserTask;
 
@@ -105,21 +105,29 @@ public class UserTaskSolutionService {
 			ex.printStackTrace();
 		}
 	}
-	public UserTaskSolutionDto updateSuccessReview(UsersTaskSolution userTaskSolution)
+	public void updateSuccessReview(UsersTaskSolution userTaskSolution) 
 	{
-		UserTask userTask=this.userTaskService.findAndGetUserTask(userTaskSolution.getUsertask().getId());
-		if(userTask!=null)
-		{
+		try {
 			Optional<UsersTaskSolution> optionalUserTaskSolution=repos.findById(userTaskSolution.getId());
-			if(optionalUserTaskSolution.isPresent())
-			{
-				userTaskSolution.setReviewedAt(new Timestamp(System.currentTimeMillis()));
-				userTask.setTaskProgress(userTaskSolution.getUsertask().getTaskProgress());
-				
-			}
-			return null;
+				if(optionalUserTaskSolution.isPresent())
+				{
+					UsersTaskSolution taskSolution=optionalUserTaskSolution.get();
+					taskSolution.setReviewedAt(new Timestamp(System.currentTimeMillis()));
+					taskSolution.setAudioAdvice(userTaskSolution.getAudioAdvice());
+					CorrectionStatus correctionStatus=userTaskSolution.getCorrectionStatus();
+					taskSolution.setCorrectionStatus(correctionStatus);
+					repos.save(taskSolution);
+					if(correctionStatus.equals(CorrectionStatus.CORRECT))
+					{
+						UserTask userTask=taskSolution.getUsertask();
+						userTask.setTaskProgress(TaskProgress.REVIEWED);
+						this.userTaskService.update(userTask);
+					}
+				}
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
 		}
-		return null;
 	}
 	public UserTaskSolutionImagesDto findSolutionImages(int userSolutionId) {
 		try {

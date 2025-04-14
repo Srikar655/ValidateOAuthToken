@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.iss.Repos.CourseRepository;
@@ -44,6 +45,7 @@ public class CourseService {
     		throw new Exception("Error There is No Course Available");
     	}
     }
+    @Cacheable(value = "courses")
     public List<CourseDto> findAll() {
         List<CourseDto> list = null;
         try {
@@ -85,7 +87,7 @@ public class CourseService {
             throw new RuntimeException("Error fetching the course with id " + id, ex);
         }
     }
-
+    @Cacheable(value = "coursethumbnail", key = "#id")
     public CourseDto findThumbnail(int id) {
         try {
         	Optional<byte[]> optionalbytes=repos.findCoursethumbnailById(id);

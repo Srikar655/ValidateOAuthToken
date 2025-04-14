@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,7 @@ public class TasksService {
             throw new RuntimeException("Error fetching Task with id " + id, ex);
         }
     }
-
+    @Cacheable(value = "tasks", key = "#videoId")
     public List<TasksDto> findByVideoId(int videoId, Pageable pageable) {
         try {
             Optional<Page<Tasks>> taskPageOpt = repos.findByVideoId(videoId, pageable);

@@ -4,11 +4,12 @@ package com.iss.controllers;
 import java.sql.Timestamp;
 import java.util.Set;
 
-
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import com.iss.models.EmailDetails;
 import com.iss.models.User;
 
 
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
+import com.iss.Services.EmailService;
 
 
 
@@ -31,11 +33,16 @@ public class ValidController
 {
 	private final CustomUserDetailsService userService;
 	private final RoleRepository roleRepos;
+	private final EmailService emailService;
+	
+	@Value("${loginmessage}")
+	private String message;
 
-	public ValidController(CustomUserDetailsService userService,RoleRepository roleRepos) {
+	public ValidController(CustomUserDetailsService userService,RoleRepository roleRepos,EmailService emailService) {
 		super();
 		this.userService = userService;
 		this.roleRepos = roleRepos;
+		this.emailService=emailService;
 	}
 	@GetMapping("/userinfo")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
@@ -75,6 +82,14 @@ public class ValidController
         		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
     			user=userService.add(u);
             }
+            EmailDetails em = new EmailDetails();
+            em.setRecipient(email); 
+            em.setSubject("Welcome to Innovative Tutorials - You're All Set to Start Your Learning Journey!");
+
+            em.setMsgBody(message.formatted(email));
+            System.out.println("Sending");
+
+            emailService.sendSimpleMail(em);
         } catch (Exception e) {
         
         	e.printStackTrace();

@@ -8,6 +8,7 @@ import com.iss.models.PaymentStatus;
 import com.iss.models.UserVedio;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -65,7 +66,6 @@ public class UserVedioService {
             throw new RuntimeException("Error fetching the UserVedio with id " + id, ex);
         }
     }
-
     public List<UserVedioDto> findByUsercourseId(int usercourseId, Pageable pageable) {
         try {
             Page<UserVedio> page = repos.findByUsercourseId(usercourseId, pageable);

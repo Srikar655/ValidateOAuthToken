@@ -1,175 +1,177 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.iss</groupId>
-	<artifactId>ValidateOAuthToken</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>ValidateOAuthToken</name>
-	<description>Demo project for Spring Boot</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>23</java.version>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-client</artifactId>
-		</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
+    </parent>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.thymeleaf.extras</groupId>
-			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
-		<dependency>
-		    <groupId>org.mapstruct</groupId>
-		    <artifactId>mapstruct</artifactId>
-		    <version>1.6.3</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor -->
-		<dependency>
-		    <groupId>org.mapstruct</groupId>
-		    <artifactId>mapstruct-processor</artifactId>
-		    <version>1.6.3</version>
-		</dependency>
-	
+    <groupId>com.iss</groupId>
+    <artifactId>ValidateOAuthToken</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>ValidateOAuthToken</name>
+    <description>Demo project for Spring Boot</description>
 
-		<dependency>
+    <properties>
+        <java.version>21</java.version>
+        <hibernate.version>6.4.4.Final</hibernate.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+		
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-websocket</artifactId>		    
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.razorpay/razorpay-java -->
-		<dependency>
-		    <groupId>com.razorpay</groupId>
-		    <artifactId>razorpay-java</artifactId>
-		    <version>1.4.8</version>
-		</dependency>
-
-	</dependencies>
-
-	<build>
-    <plugins>
-        <!-- Hibernate Bytecode Enhancement Plugin -->
-        <plugin>
-            <groupId>org.hibernate.orm.tooling</groupId>
-            <artifactId>hibernate-enhance-maven-plugin</artifactId>
-            <version>${hibernate.version}</version>
-            <executions>
-                <execution>
-                    <configuration>
-                        <failOnError>true</failOnError>
-                        <enableLazyInitialization>true</enableLazyInitialization>
-                    </configuration>
-                    <goals>
-                        <goal>enhance</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-
-        <!-- Maven Compiler Plugin for Lombok and MapStruct -->
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <annotationProcessorPaths>
-                    <!-- Lombok -->
-                    <path>
-                        <groupId>org.projectlombok</groupId>
-                        <artifactId>lombok</artifactId>
-                        <version>1.18.24</version> <!-- Make sure this matches your Lombok version -->
-                    </path>
-                    <!-- MapStruct -->
-                    <path>
-                        <groupId>org.mapstruct</groupId>
-                        <artifactId>mapstruct-processor</artifactId>
-                        <version>1.6.3</version> <!-- Match this with MapStruct version -->
-                    </path>
-                </annotationProcessorPaths>
-            </configuration>
-        </plugin>
-
-        <!-- Spring Boot Maven Plugin -->
-        <plugin>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <configuration>
-                <excludes>
-                    <exclude>
-                        <groupId>org.projectlombok</groupId>
-                        <artifactId>lombok</artifactId>
-                    </exclude>
-                </excludes>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
 
+        <!-- MapStruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.3</version>
+        </dependency>
 
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version><!--$NO-MVN-MAN-VER$-->
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Dev tools, test, database -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Razorpay -->
+        <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.8</version>
+        </dependency>
+        <dependency>
+		    <groupId>com.github.ben-manes.caffeine</groupId>
+		    <artifactId>caffeine</artifactId>
+		</dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Hibernate Enhancer -->
+            <plugin>
+                <groupId>org.hibernate.orm.tooling</groupId>
+                <artifactId>hibernate-enhance-maven-plugin</artifactId>
+                <version>${hibernate.version}</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                            <enableLazyInitialization>true</enableLazyInitialization>
+                        </configuration>
+                        <goals>
+                            <goal>enhance</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version><!--$NO-MVN-MAN-VER$-->
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.6.3</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

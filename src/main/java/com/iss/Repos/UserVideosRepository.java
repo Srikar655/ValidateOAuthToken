@@ -18,5 +18,12 @@ public interface UserVideosRepository extends JpaRepository<UserVedio, Integer> 
     
     @Query("SELECT uv.vedio.vedioprice FROM UserVedio uv where uv.id=:userVideoId")
 	Optional<Double> getUserVideoPriceById(@Param("userVideoId")int userVideoId);
+    
+    @Query(value = "SELECT TOP 1 * FROM user_vedio uv WHERE uv.id > :userVideoPosition AND uv.usercourse_id = :userCourseId ORDER BY uv.id ASC", nativeQuery = true)
+    Optional<UserVedio> getNextUserVideo(@Param("userVideoPosition") int userVideoPosition, @Param("userCourseId") int userCourseId);
+
+
+
+
 
 }

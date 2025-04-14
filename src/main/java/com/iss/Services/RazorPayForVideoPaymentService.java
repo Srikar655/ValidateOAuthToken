@@ -133,6 +133,16 @@ public class RazorPayForVideoPaymentService {
 		        	{
 		        		listtask.getFirst().setAccessStatus(AccessStatus.UNLOCKED);
 		        	}
+		        	else if(listtask==null || listtask.isEmpty())
+		        	{
+		        		Optional<UserVedio> optionalNextUserVedio=this.userVedioRepos.getNextUserVideo(uservideo.getId(), uservideo.getUsercourse().getId());
+		        		if(optionalNextUserVedio.isPresent())
+		        		{
+		        			UserVedio uv=optionalNextUserVedio.get();
+		        			uv.setAccessStatus(AccessStatus.UNLOCKED);
+		        			this.userVedioRepos.save(uv);
+		        		}
+		        	}
 		        	UserVedio newuservideo=this.userVedioRepos.save(uservideo);
 		        	long createdAt = paymentData.getLong("created_at");
 		            LocalDateTime paymentDateTime = LocalDateTime.ofEpochSecond(createdAt, 0, ZoneOffset.UTC);

@@ -11,6 +11,7 @@ import com.iss.models.Tasks;
 import com.iss.models.UserTask;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class UserTaskService {
             throw new RuntimeException("Error adding the UserTask", ex);
         }
     }
-
+    
     public List<UserTaskDto> findAll(Pageable pageable) {
         try {
             Page<UserTask> page = repos.findAll(pageable);
@@ -47,8 +48,7 @@ public class UserTaskService {
             throw new RuntimeException("Error fetching paginated UserTasks", ex);
         }
     }
-
-    public List<UserTaskDto> findByUserVedioId(int userVedioId, Pageable pageable) {
+       public List<UserTaskDto> findByUserVedioId(int userVedioId, Pageable pageable) {
         try {
             Optional<Page<UserTask>> optionalpage = repos.findByUservedio_Id(userVedioId, pageable);
             if(optionalpage.isPresent())

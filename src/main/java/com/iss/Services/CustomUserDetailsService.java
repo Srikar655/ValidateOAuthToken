@@ -1,6 +1,7 @@
 package com.iss.Services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import com.iss.Repos.UserRepository;
 import com.iss.models.User;
+
+import jakarta.transaction.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 	private UserRepository userRepository;
 
     @Override
+    @Transactional
+    @Cacheable(value = "users", key = "#usernameOrEmail")
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         Optional<User> optionaluser = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
         if(optionaluser.isPresent())
@@ -71,6 +76,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     	}
     	return null;
     }
+    @Cacheable(value = "userauthorities", key = "#email")
     public Collection<? extends GrantedAuthority> getAuthorities(String email) {
         return userRepository.findRolesByUsernameOrEmail(email, email)
             .orElse(Collections.emptyList())  // Handle the case when roles are not found

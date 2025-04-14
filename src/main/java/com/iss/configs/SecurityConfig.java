@@ -6,8 +6,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -16,6 +21,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -28,12 +34,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.iss.Validators.*;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.iss.Services.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
 @EnableAsync
 @EnableMethodSecurity
+@EnableCaching
 public class SecurityConfig {
 
 	private final List<String> validAudiences;
@@ -96,9 +104,14 @@ public class SecurityConfig {
 
             try {
                
-                collection=userservice.getAuthorities(email);
+            	UserDetails user=userservice.loadUserByUsername(email);
+            	if(user!=null)
+            	{
+            		collection=user.getAuthorities();
+            	}
+            	//collection=this.userservice.getAuthorities(email);
             } catch (UsernameNotFoundException e) {
-
+            	
             	
             }
             
@@ -109,7 +122,14 @@ public class SecurityConfig {
 
         return converter;
     }
-
+    @Bean
+     CacheManager cacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("users","userauthorities","courses","coursethumbnail","videos","taskimages","tasks","userCourses","usertasks","userVedios");
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+            .expireAfterWrite(10, TimeUnit.MINUTES)  // ⏱️ roles expire after 15 mins
+            .maximumSize(1000));
+        return cacheManager;
+    }
 
 }
 

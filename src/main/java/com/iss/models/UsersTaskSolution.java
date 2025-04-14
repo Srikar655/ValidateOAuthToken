@@ -33,9 +33,13 @@ public class UsersTaskSolution {
 	private Timestamp submittedAt;
 	private Timestamp reviewedAt;
 	private String description;
+	@Lob
+	private byte[] audioAdvice;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("usertask-usersolutions")
 	@JoinColumn(name="usertask_id",nullable=false,referencedColumnName="id")
 	private UserTask usertask;
 	private String email;
+	
+	private CorrectionStatus correctionStatus=CorrectionStatus.WRONG;
 }

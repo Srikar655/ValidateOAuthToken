@@ -4,6 +4,7 @@ import com.iss.Dto.TaskImageDto;
 import com.iss.Services.TaskImageService;
 import com.iss.models.TaskImages;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class TaskImageController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/getAll")
+    @Cacheable(value = "taskimages", key = "#taskId")
     public ResponseEntity<?> getTaskImages(@RequestParam int taskId) {
     	try
     	{

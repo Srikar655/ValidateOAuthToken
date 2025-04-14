@@ -92,9 +92,9 @@ public class CourseController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/findCourseThumbnail")
+    
     public ResponseEntity<?> getCourseThumbnail(@RequestParam int courseId) {
         try {
-        	System.out.println("Finding course thumnail");
             return ResponseEntity.ok(courseService.findThumbnail(courseId));
         } catch (Exception ex) {
         	ex.printStackTrace();
