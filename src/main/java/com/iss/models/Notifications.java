@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Data
@@ -32,7 +35,7 @@ public class Notifications {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    private boolean read = false;
+
 
     private LocalDateTime createdAt;
 
@@ -40,6 +43,13 @@ public class Notifications {
     public void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_notifications",  // Join table name
+        joinColumns = @JoinColumn(name = "notification_id", referencedColumnName = "id"), // column for notifications
+        inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id") // column for users
+    )
+    private List<User> users;
     
 }

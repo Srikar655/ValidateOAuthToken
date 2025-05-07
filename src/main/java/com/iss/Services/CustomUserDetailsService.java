@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +47,23 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         return null;
     }
+    @Transactional
+    public User find(String usernameOrEmail){
+    	try {
+	        Optional<User> optionaluser = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
+	        if(optionaluser.isPresent())
+	        {
+	        	User user=optionaluser.get();
+		        return user;
+	        }
+	        return null;
+    	}catch(Exception ex)
+    	{
+    		ex.printStackTrace();
+    		return null;
+    	}
+    }
+    
     public org.springframework.security.core.userdetails.UserDetails add(User user)
 	{
 		try
@@ -83,6 +101,25 @@ public class CustomUserDetailsService implements UserDetailsService {
             .stream()
             .map(role -> new SimpleGrantedAuthority(role.getName()))  // Assuming the role entity has a getName() method
             .collect(Collectors.toList());
+    }
+    @Transactional
+    public List<User> findByRole(String role)
+    {
+    	try
+    	{
+	    	Optional<List<User>> optionalusers=this.userRepository.findByRole(role);
+	    	if(optionalusers.isPresent())
+	    	{
+	    		List<User> list=optionalusers.get();
+	    		return list;
+	    	}
+	    	return null;
+    	}
+    	catch(Exception ex)
+    	{
+    		ex.printStackTrace();
+    		return null;
+    	}
     }
 
 }

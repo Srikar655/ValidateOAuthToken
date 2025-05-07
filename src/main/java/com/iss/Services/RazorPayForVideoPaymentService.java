@@ -3,6 +3,7 @@ package com.iss.Services;
 
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ import com.iss.models.PaymentStatus;
 import com.iss.models.User;
 import com.iss.models.UserTask;
 import com.iss.models.UserVedio;
+import com.iss.models.Vedio;
+import com.iss.models.VideoReportData;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -46,6 +49,9 @@ public class RazorPayForVideoPaymentService {
     @Autowired
     private UserRepository userRepos;
     
+    @Autowired
+    private JapserReportService jasperReportService;
+
     @Value("${razorpay.key}")
     private String apiKey;
 
@@ -173,6 +179,25 @@ public class RazorPayForVideoPaymentService {
 		        	this.paymentRepos.save(payment);
 		        	UserVedioDto uservideodto= UserVedioMapper.Instance.toDto(newuservideo);
 		        	uservideodto.getVedio().setVideourl(newuservideo.getVedio().getVideourl());
+		        	Vedio video=newuservideo.getVedio();
+		        	VideoReportData videoReport = VideoReportData.builder()
+		        		    .name(user.getUsername())               // user.getUsername()
+		        		    .email(useremail)              // useremail
+		        		    .invoiceno("33")          // provide invoice number if any
+		        		    .paidvideo(newuservideo.getVedio().getVediotitle())          // name or title of the paid video
+		        		    .videono(newuservideo.getId())             // video number if applicable
+		        		    .subscriptionfee(video.getVedioprice())   // payment.getAmount().doubleValue()
+		        		    .subtotal(video.getVedioprice())          // payment.getAmount().doubleValue()
+		        		    .gst(30.0)               // payment.getTax().doubleValue()
+		        		    .paymentdate(Timestamp.valueOf(payment.getPaymentDate()))      // Timestamp.valueOf(payment.getPaymentDate())
+		        		    .paymentid(payment.getPaymentId()+"")          // payment.getPaymentId()
+		        		    .paymentmethod(payment.getPaymentMethod())      // payment.getPaymentMethod()
+		        		    .upi(payment.getVpa())                // payment.getVpa()
+		        		    .transactionid(payment.getAcquirerTransactionId()) 
+		        		    .course(video.getCourse().getCoursename())// payment.getAcquirerTransactionId()
+		        		    .build();
+
+		            this.jasperReportService.createAndSendVideoPaymentInvoiceReport(videoReport);
 		        	return uservideodto;
 		        }
 		        return null;

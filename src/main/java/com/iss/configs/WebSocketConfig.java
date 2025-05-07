@@ -12,6 +12,13 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+ private final WebSocketInterceptor webSocketInterceptor;
+ 
+ public WebSocketConfig(WebSocketInterceptor webSocketIntercptor)
+ {
+	 this.webSocketInterceptor=webSocketIntercptor;
+ }
+ 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
     config.enableSimpleBroker("/topic");
@@ -32,6 +39,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   }
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-      registration.interceptors(new WebSocketInterceptor());
+      registration.interceptors(webSocketInterceptor);
   }
 }

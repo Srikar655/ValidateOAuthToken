@@ -68,7 +68,7 @@ public class EmailService {
 	            details.getSubject());
 	       
 	
-	        mimeMessageHelper.addAttachment("Innovative",new ByteArrayDataSource(details.getAttachment(),"image/jpeg"));
+	        mimeMessageHelper.addAttachment("Innovative.pdf",new ByteArrayDataSource(details.getAttachment(),"application/pdf"));
 	
 	        javaMailSender.send(mimeMessage);
 	        return ;

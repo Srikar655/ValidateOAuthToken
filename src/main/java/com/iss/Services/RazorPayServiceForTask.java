@@ -3,10 +3,10 @@ package com.iss.Services;
 
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.json.JSONObject;
@@ -22,6 +22,7 @@ import com.iss.Repos.UserRepository;
 import com.iss.Repos.UserTaskRepsitory;
 import com.iss.models.Payment;
 import com.iss.models.PaymentStatus;
+import com.iss.models.TaskReprotData;
 import com.iss.models.User;
 import com.iss.models.UserTask;
 import com.razorpay.Order;
@@ -44,6 +45,9 @@ public class RazorPayServiceForTask {
     
     @Autowired
     private UserRepository userRepos;
+    
+    @Autowired
+    private JapserReportService jasperReportService;
     
     @Value("${razorpay.key}")
     private String apiKey;
@@ -157,6 +161,24 @@ public class RazorPayServiceForTask {
 		        	this.paymentRepos.save(payment);
 		        	UserTaskDto usertaskdto= UserTaskMapper.Instance.toDto(newusertask);
 		        	BeanUtils.copyProperties(newusertask, usertaskdto,"uservedio","payments");
+		        	TaskReprotData reportData = TaskReprotData.builder()
+		        	        .name(user.getUsername())
+		        	        .email(useremail)
+		        	        .invoiceno("INV-20250422")
+		        	        .video(newusertask.getUservedio().getVedio().getVediotitle())
+		        	        .taskno(newusertask.getId())
+		        	        .subscriptionfee(newusertask.getTask().getTaskprice())
+		        	        .subtotal(newusertask.getTask().getTaskprice())
+		        	        .gst(89.82)
+		        	        .paymentdate(Timestamp.valueOf(payment.getPaymentDate()))
+		        	        .paymentid(payment.getPaymentId()+"")
+		        	        .paymentmethod(payment.getPaymentMethod())
+		        	        .upi(payment.getVpa())
+		        	        .transactionid(payment.getAcquirerTransactionId())
+		        	        .course(newusertask.getUservedio().getVedio().getCourse().getCoursename())
+		        	        .task(newusertask.getTask().getTask())
+		        	        .build();
+		        	this.jasperReportService.createAndSendTaskPaymentInvoiceReport(reportData);
 		        	return usertaskdto;
 		        }
 		        return null;

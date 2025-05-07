@@ -28,5 +28,35 @@
     "name": "razorpay.currency",
     "type": "java.lang.String",
     "description": "A description for 'razorpay.currency'"
+  },
+  {
+    "name": "videoreportpath",
+    "type": "java.lang.String",
+    "description": "A description for 'videoreportpath'"
+  },
+  {
+    "name": "coursePaymentReport-path",
+    "type": "java.lang.String",
+    "description": "A description for 'coursePaymentReport-path'"
+  },
+  {
+    "name": "loginmessage",
+    "type": "java.lang.String",
+    "description": "A description for 'loginmessage'"
+  },
+  {
+    "name": "coursePaymentReport-path",
+    "type": "java.lang.String",
+    "description": "A description for 'coursePaymentReport-path'"
+  },
+  {
+    "name": "coursePaymentReportpath",
+    "type": "java.lang.String",
+    "description": "A description for 'coursePaymentReportpath'"
+  },
+  {
+    "name": "taskreportpath",
+    "type": "java.lang.String",
+    "description": "A description for 'taskreportpath'"
   }
 ]}

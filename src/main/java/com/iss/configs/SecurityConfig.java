@@ -107,7 +107,10 @@ public class SecurityConfig {
             	UserDetails user=userservice.loadUserByUsername(email);
             	if(user!=null)
             	{
+            		System.out.println(user.getAuthorities());
             		collection=user.getAuthorities();
+            		System.out.println(collection);
+            		
             	}
             	//collection=this.userservice.getAuthorities(email);
             } catch (UsernameNotFoundException e) {

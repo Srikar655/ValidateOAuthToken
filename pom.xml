@@ -76,7 +76,7 @@
             <version>1.18.30</version><!--$NO-MVN-MAN-VER$-->
             <optional>true</optional>
         </dependency>
-
+		
         <!-- Dev tools, test, database -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -114,6 +114,21 @@
 		    <groupId>com.github.ben-manes.caffeine</groupId>
 		    <artifactId>caffeine</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>net.sf.jasperreports</groupId>
+		    <artifactId>jasperreports</artifactId>
+		    <version>6.20.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all -->
+		<dependency>
+		    <groupId>org.codehaus.groovy</groupId>
+		    <artifactId>groovy-all</artifactId>
+		    <version>3.0.24</version>
+		    <type>pom</type>
+		</dependency>
+
+
+		
     </dependencies>
 
     <build>
@@ -135,7 +150,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

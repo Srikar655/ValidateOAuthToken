@@ -3,6 +3,7 @@ package com.iss.Services;
 
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import com.iss.Repos.PaymentRepository;
 import com.iss.Repos.UserRepository;
 import com.iss.models.AccessStatus;
 import com.iss.models.Course;
+import com.iss.models.CourseReportData;
 import com.iss.models.Payment;
 import com.iss.models.PaymentStatus;
 import com.iss.models.SubscriptionStatus;
@@ -54,6 +56,8 @@ public class RazorPayForCourseService {
     @Autowired
     private  UserCourseService usercourseService;
     
+    @Autowired
+    private JapserReportService jasperReportService;
 
     @Value("${razorpay.key}")
     private String apiKey;
@@ -186,7 +190,11 @@ public class RazorPayForCourseService {
 
 
         paymentRepos.save(payment);
-        
+        CourseReportData courseReport = CourseReportData.builder().coursecategory(course.getCourseCategory().getCategory()).email(email).name(user.getUsername())
+        		.enrolledcourse(course.getCoursename()).gst(payment.getTax().doubleValue()).invoiceno("").paymentid(payment.getPaymentMethod())
+        		.paymentid(""+payment.getPaymentId()).paymentdate(Timestamp.valueOf(payment.getPaymentDate())).transactionid(payment.getAcquirerTransactionId())
+        		.subscriptionfee(payment.getAmount().doubleValue()).subtotal(payment.getAmount().doubleValue()).upi(payment.getVpa()).build();
+        this.jasperReportService.createAndSendCoursePaymentInvoiceReport(courseReport);
         return newusercourse;
     }
 

@@ -12,16 +12,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user-task-solution")
@@ -76,10 +73,10 @@ public class UserTaskSolutionController {
         	String emailString=jwt.getClaimAsString("email");
         	userTaskSolution.setSubmittedAt(new Timestamp(System.currentTimeMillis()));
         	userTaskSolution.setEmail(emailString);
-        	String message = "📝 New Task Submitted by " + emailString;
+        	String message = "New Task Submitted by " + emailString;
             UserTaskSolutionDto addedUserTaskSolutionDto = this.userTaskSolutionService.add(userTaskSolution);
-            Notifications notification=Notifications.builder().sender(emailString).receiver("ADMIN").message(message).read(false).type(NotificationType.INFO).build();
-            this.notificationService.sendNotification(notification);
+            Notifications notification=Notifications.builder().sender(emailString).receiver("ADMIN").message(message).type(NotificationType.INFO).build();
+            this.notificationService.sendNotificationToAdmin(notification);
             return new ResponseEntity<>(addedUserTaskSolutionDto, HttpStatus.CREATED);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

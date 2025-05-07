@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
+import com.iss.models.Notifications;
 import com.iss.models.Role;
 
 import lombok.AllArgsConstructor;
@@ -31,4 +32,5 @@ public class UserDto
 	List<UserCourseDto> usercourse;
     
 	private List<PaymentDto> payments;
+	private List<Notifications> notifications;
 }
