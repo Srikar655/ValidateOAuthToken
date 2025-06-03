@@ -46,7 +46,8 @@ public class User {
     private String password;
 
     private String phonenumber;
-
+    
+    private String gitSourceToken;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "users_roles",
@@ -76,6 +77,7 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "notification_id", referencedColumnName = "id")
     )
     private List<Notifications> notifications;
+    
     
     
 }

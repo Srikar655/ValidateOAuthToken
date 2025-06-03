@@ -58,5 +58,30 @@
     "name": "taskreportpath",
     "type": "java.lang.String",
     "description": "A description for 'taskreportpath'"
+  },
+  {
+    "name": "github-clientId",
+    "type": "java.lang.String",
+    "description": "A description for 'github-clientId'"
+  },
+  {
+    "name": "github-clientsecreat",
+    "type": "java.lang.String",
+    "description": "A description for 'github-clientsecreat'"
+  },
+  {
+    "name": "github-clientId",
+    "type": "java.lang.String",
+    "description": "A description for 'github-clientId'"
+  },
+  {
+    "name": "github-clientsecreat",
+    "type": "java.lang.String",
+    "description": "A description for 'github-clientsecreat'"
+  },
+  {
+    "name": "coursePaymentReport-path",
+    "type": "java.lang.String",
+    "description": "A description for 'coursePaymentReport-path'"
   }
 ]}
