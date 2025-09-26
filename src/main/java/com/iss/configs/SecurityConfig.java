@@ -57,18 +57,18 @@ public class SecurityConfig {
 		 this.userservice=userservice;
 	}
 	@Bean
-     CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200"));  
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));  
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));  
-        corsConfig.setAllowCredentials(true);  
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig); 
-        
-        return source;
-    }
+	CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration corsConfig = new CorsConfiguration();
+	    corsConfig.setAllowedOriginPatterns(Arrays.asList("*"));
+	    corsConfig.setAllowedMethods(Arrays.asList("*"));
+	    corsConfig.setAllowedHeaders(Arrays.asList("*"));
+	    corsConfig.setAllowCredentials(true);
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", corsConfig);
+
+	    return source;
+	}
 
 	 @Bean
 	    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -105,6 +105,8 @@ public class SecurityConfig {
             try {
                
             	UserDetails user=userservice.loadUserByUsername(email);
+            	System.out.println("HELLO");
+            	System.out.println(user);
             	if(user!=null)
             	{
             		System.out.println(user.getAuthorities());

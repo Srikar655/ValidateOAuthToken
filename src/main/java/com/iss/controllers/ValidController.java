@@ -75,8 +75,10 @@ public class ValidController
 
         try {
             user = this.userService.loadUserByUsername(email);
+            System.out.println(user);
             if(user==null)
             {
+            	System.out.println(user);
             	String name= jwt.getClaimAsString("name");
         		String picture=jwt.getClaimAsString("picture");
         		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
