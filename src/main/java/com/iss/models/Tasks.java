@@ -7,7 +7,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -35,10 +38,20 @@ public class Tasks {
 	private int id;
 	private String task;
 	private String taskurl;
+	private TaskLevel taskLevel;
+	@Column(nullable = false, columnDefinition = "int default 0")
+	private int points;
 	@OneToMany(mappedBy="task",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	@JsonManagedReference("task-taskimages")
 	private List<TaskImages> taskimages;
+	private String gitHubReferenceUrl;
+	private String pdfResourceUrl;
+	@Column(length=1000)
+	private String taskDescription;
 	private double taskprice;
+	@Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'IMAGE_UPLOAD'")
+    private SubmissionType submissionType;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonBackReference("video-tasks")
 	@JoinColumn(name="video_id",nullable=false,referencedColumnName="id")

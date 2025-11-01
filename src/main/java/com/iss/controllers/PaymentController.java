@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,9 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.iss.Dto.UserCourseDto;
+import com.iss.Dto.CoursePayementVerificationDto;
+import com.iss.Dto.TaskPayementVerificationDto;
 import com.iss.Dto.UserTaskDto;
-import com.iss.Dto.UserVedioDto;
+import com.iss.Dto.VideoPayementVerificationDto;
 import com.iss.Services.RazorPayForCourseService;
 import com.iss.Services.RazorPayForVideoPaymentService;
 import com.iss.Services.RazorPayServiceForTask;
@@ -46,7 +48,9 @@ public class PaymentController {
         	String email=jwt.getClaimAsString("email");
             return ResponseEntity.ok(coursePaymentService.createCourseSubscriptionOrder(courseId,email));
          
-        } catch (Exception e) {
+        }catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }  catch (Exception e) {
         	e.printStackTrace();
         	return ResponseEntity.status(500).body("Error adding the Payments: " + e.getMessage());
         }
@@ -78,7 +82,7 @@ public class PaymentController {
         JSONObject jsonPayload = new JSONObject(payload);
         String eventType = jsonPayload.getString("event");
         if ("payment.captured".equals(eventType)) {
-
+        	System.out.println(jsonPayload);
             return ResponseEntity.ok("Webhook received successfully!");
         } else {
             return ResponseEntity.ok("Unhandled event: " + eventType);
@@ -87,61 +91,50 @@ public class PaymentController {
 
     
     @PostMapping("api/coursepayment/verify")
-    public Map<String, Object> courseVerifyPayment(@RequestBody Map<String, String> paymentDetails) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<?> courseVerifyPayment(@RequestBody Map<String, String> paymentDetails) {
         
         try {
-            UserCourseDto userCourse =coursePaymentService.verifyPayment(paymentDetails); 
-            if (userCourse != null) {
-                response.put("status", "success");
-                response.put("UserCourse", userCourse);
+        	CoursePayementVerificationDto paymentVerification =coursePaymentService.verifyPayment(paymentDetails); 
+            if (paymentVerification != null) {
+                return ResponseEntity.ok(paymentVerification);
             } else {
-                response.put("status", "failure");
+            	return ResponseEntity.ok(null);
             }
         } catch (Exception e) {
-            response.put("status", "failure");
             e.printStackTrace();
-            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        return response;
     }
-    @PostMapping("api/videoverify-payment")
-    public Map<String, Object> videoPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
-        Map<String, Object> response = new HashMap<>();
-        
+    @PostMapping("api/video_payment_verification")
+    public ResponseEntity<?> videoPaymentVerify(@RequestBody Map<String, String> paymentDetails) {        
         try {
-            UserVedioDto userVedio =videoPaymentService.verifyPayment(paymentDetails); 
-            if (userVedio != null) {
-                response.put("status", "success");
-                response.put("UserVideo", userVedio);
+            VideoPayementVerificationDto videoPaymentVerification =videoPaymentService.verifyPayment(paymentDetails); 
+            if (videoPaymentVerification != null) {
+            	return ResponseEntity.ok(videoPaymentVerification);
             } else {
-                response.put("status", "failure");
+            	return ResponseEntity.ok(null);
             }
         } catch (Exception e) {
-            response.put("status", "failure");
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        return response;
     }
     @PostMapping("api/taskverify-payment")
-    public Map<String, Object> taskPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<?> taskPaymentVerify(@RequestBody Map<String, String> paymentDetails) {
         
         try {
-            UserTaskDto userTask =taskPaymentService.verifyPayment(paymentDetails); 
-            if (userTask != null) {
-                response.put("status", "success");
-                response.put("UserTask", userTask);
+        	TaskPayementVerificationDto taskPayementVerificationDto =taskPaymentService.verifyPayment(paymentDetails); 
+            if (taskPayementVerificationDto != null) {
+            	return ResponseEntity.ok(taskPayementVerificationDto);
             } else {
-                response.put("status", "failure");
+            	return ResponseEntity.ok(null);
             }
         } catch (Exception e) {
-            response.put("status", "failure");
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        return response;
     }
 }

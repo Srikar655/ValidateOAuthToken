@@ -33,7 +33,7 @@ public class UserTaskDto {
 	private List<UserTaskSolutionDto> usersolution;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TaskProgress taskProgress = TaskProgress.PENDING;
+    private TaskProgress taskProgress = TaskProgress.NOT_STARTED;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

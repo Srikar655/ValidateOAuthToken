@@ -1,7 +1,9 @@
 package com.iss.models;
 
 public enum TaskProgress {
-	PENDING,
+	NOT_STARTED,
+	IN_PROGRESS,
 	SUBMITED,
-	REVIEWED
+	REVIEWED,
+	REJECTED
 }

@@ -1,24 +1,25 @@
 package com.iss.Services;
 
-import com.iss.Dto.TasksDto;
+import com.iss.Dto.UserTaskDetailDisplayDto;
 import com.iss.Dto.UserTaskDto;
-import com.iss.Mappers.TaskImageMapper;
+import com.iss.Dto.UserTaskListDisplayDto;
 import com.iss.Mappers.UserTaskMapper;
 import com.iss.Repos.UserTaskRepsitory;
 import com.iss.models.AccessStatus;
 import com.iss.models.PaymentStatus;
 import com.iss.models.Tasks;
 import com.iss.models.UserTask;
-
-import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserTaskService {
@@ -28,7 +29,8 @@ public class UserTaskService {
     public UserTaskService(UserTaskRepsitory repos) {
         this.repos = repos;
     }
-
+    @CacheEvict(value = "userTasksByUserVideo", key = "#userTask.userVideo.id") // Assumes UserTask has a 'userVideo' field
+    @Transactional
     public UserTaskDto add(UserTask userTask) {
         try {
             UserTask savedTask = repos.save(userTask);
@@ -48,48 +50,61 @@ public class UserTaskService {
             throw new RuntimeException("Error fetching paginated UserTasks", ex);
         }
     }
-       public List<UserTaskDto> findByUserVedioId(int userVedioId, Pageable pageable) {
-        try {
-            Optional<Page<UserTask>> optionalpage = repos.findByUservedio_Id(userVedioId, pageable);
-            if(optionalpage.isPresent())
-            {
-            	List<UserTask> usertasks= optionalpage.get().getContent();
-            	return usertasks.stream().map(ut->{
-            		if(ut.getAccessStatus().equals(AccessStatus.UNLOCKED))
-            		{
-	            		UserTaskDto userTaskDto=UserTaskMapper.Instance.toDto(ut);
-	            		if(ut.getPaymentStatus().equals(PaymentStatus.COMPLETED))
-	            		{
-	            			Tasks task=ut.getTask();
-	            			TasksDto temptask=userTaskDto.getTask();
-	            			temptask.setTaskimages(TaskImageMapper.Instance.toDtoList(task.getTaskimages()));
-	            			temptask.setTask(task.getTask());
-	            			temptask.setTaskurl(task.getTaskurl());
-	            		}
-	            		return userTaskDto;
-            		}
-            		UserTaskDto userTaskDto=new UserTaskDto();
-            		BeanUtils.copyProperties(ut,userTaskDto,"task","payments","uservedio");
-            		return userTaskDto;
-            	}).collect(Collectors.toList());
-            }
-            return null;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error fetching UserTasks by UserVedio ID", ex);
-        }
-    }
+    
+	@Cacheable(value = "userTasksByUserVideo", key = "#userVideoId")
+	@Transactional(readOnly = true)
+   public List<UserTaskListDisplayDto> findByUserVedioId(int userVideoId) {
+	    try {
+	        List<UserTaskListDisplayDto> list = repos.findUserTasksByUserVedioId(userVideoId);
+	        return list;
+	    } catch (Exception ex) {
+	        ex.printStackTrace();
+	        throw new RuntimeException("Error fetching UserTasks by UserVedio ID", ex);
+	    }
+	}
 
-    public UserTaskDto find(int id) {
+   @Cacheable(value = "userTask", key = "#id")
+   @Transactional(readOnly = true)
+    public UserTaskDetailDisplayDto find(int id) {
         try {
             Optional<UserTask> userTaskOpt = repos.findById(id);
-            return userTaskOpt.map(UserTaskMapper.Instance::toDto)
-                              .orElseThrow(() -> new RuntimeException("UserTask with id " + id + " not found"));
+            if(userTaskOpt.isPresent())
+            {
+            	return buildUserTaskDetailDisplayDto(userTaskOpt.get());
+            }
+            return null;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Error fetching the UserTask with id " + id, ex);
         }
     }
+    private UserTaskDetailDisplayDto buildUserTaskDetailDisplayDto(UserTask userTask)
+    {
+    	Tasks task = userTask.getTask();
+       
+        UserTaskDetailDisplayDto dto = new UserTaskDetailDisplayDto(
+            userTask.getId(),        
+            task.getId(),            
+            task.getTask(),          
+            task.getTaskprice(),     
+            task.getTaskLevel(),     
+            task.getPoints(),        
+            userTask.getPaymentStatus(),
+            userTask.getAccessStatus(), 
+            userTask.getTaskProgress() 
+        );
+        if (userTask.getAccessStatus() == AccessStatus.UNLOCKED && userTask.getPaymentStatus() == PaymentStatus.COMPLETED) {
+            
+            dto.setTaskUrl(task.getTaskurl()); 
+            dto.setSubmissionType(task.getSubmissionType());
+            if (task.getTaskimages() != null) {
+                dto.setGitHubReferenceUrl(task.getGitHubReferenceUrl());
+                dto.setPdfResourceUrl(task.getPdfResourceUrl());
+            }
+        }
+        return dto;
+    }
+    @Transactional(readOnly = true)
     public UserTask findAndGetUserTask(int id) {
         try {
             Optional<UserTask> userTaskOpt = repos.findById(id);
@@ -103,6 +118,11 @@ public class UserTaskService {
             throw new RuntimeException("Error fetching the UserTask with id " + id, ex);
         }
     }
+    @Caching(
+            put = { @CachePut(value = "userTask", key = "#userTask.id") },
+            evict = { @CacheEvict(value = "userTasksByUserVideo", key = "#userTask.userVideo.id") }
+        )
+        @Transactional
     public UserTaskDto update(UserTask task)
     {
     	try
@@ -119,6 +139,13 @@ public class UserTaskService {
     		return null;
     	}
     }
+    @Caching(
+            evict = {
+                @CacheEvict(value = "userTask", key = "#id"),
+                @CacheEvict(value = "userTasksByUserVideo", key = "#result.userVideo.id")
+            }
+        )
+        @Transactional
     public void delete(int id) {
         try {
             if (repos.existsById(id)) {

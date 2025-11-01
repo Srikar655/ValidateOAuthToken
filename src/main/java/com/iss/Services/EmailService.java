@@ -43,7 +43,6 @@ public class EmailService {
             mailMessage.setSubject(details.getSubject());
             
             javaMailSender.send(mailMessage);
-            System.out.println("SENT");
             return ;
         }
 

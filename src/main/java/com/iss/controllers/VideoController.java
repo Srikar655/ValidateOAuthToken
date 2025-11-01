@@ -1,7 +1,11 @@
 package com.iss.controllers;
 
-import com.iss.Dto.VideoDto;
+import com.iss.Dto.VideoCreateDto;
+import com.iss.Dto.VideoDetailDto;
+import com.iss.Dto.VideoListDisplayDto;
+import com.iss.Dto.VideoUpdateDto;
 import com.iss.Services.VedioService;
+import org.springframework.data.domain.Page;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/videos")
@@ -25,9 +28,9 @@ public class VideoController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
-    public ResponseEntity<?> addVideo(@RequestBody VideoDto videoDto) {
+    public ResponseEntity<?> addVideo(@RequestBody VideoCreateDto videoCreateDto) {
         try {
-            VideoDto addedVideo = vedioService.add(videoDto);
+            VideoDetailDto addedVideo = vedioService.add(videoCreateDto);
             return ResponseEntity.ok(addedVideo);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -37,14 +40,16 @@ public class VideoController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/update")
-    public ResponseEntity<?> updateVideo(@RequestBody VideoDto videoDto) {
+    public ResponseEntity<?> updateVideo(@RequestBody VideoUpdateDto videoDto) {
+    	if(videoDto.getId() < 0)
+    	{
+    		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    	}
+    	System.out.println(videoDto.getVideoTitle());
         try {
-            VideoDto updatedVideo = vedioService.update(videoDto);
-            if (updatedVideo != null) {
+        	VideoDetailDto updatedVideo = vedioService.update(videoDto);
                 return ResponseEntity.ok(updatedVideo);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Video not found.");
-            }
+           
         } catch (Exception ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating the video: " + ex.getMessage());
@@ -56,7 +61,7 @@ public class VideoController {
     public ResponseEntity<?> getVideoByCourseId(@RequestParam int courseId, @RequestParam int size, @RequestParam int page) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            List<VideoDto> videos = vedioService.findByCourseId(courseId, pageable);
+            Page<VideoListDisplayDto> videos = vedioService.findByCourseId(courseId, pageable);
             return ResponseEntity.ok(videos);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -64,11 +69,11 @@ public class VideoController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @GetMapping("/get")
-    public ResponseEntity<?> getVideo(@RequestParam int videoId) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/get/{id}")
+    public ResponseEntity<?> getVideo(@PathVariable("id") int videoId) {
         try {
-            VideoDto video = vedioService.find(videoId);
+        	VideoDetailDto video = vedioService.find(videoId);
             return ResponseEntity.ok(video);
         } catch (Exception ex) {
             ex.printStackTrace();

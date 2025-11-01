@@ -15,9 +15,10 @@ import java.util.stream.Collectors;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.iss.Dto.UserCourseDto;
+import com.iss.Dto.CoursePayementVerificationDto;
 import com.iss.Repos.CourseRepository;
 import com.iss.Repos.PaymentRepository;
 import com.iss.Repos.UserRepository;
@@ -25,6 +26,7 @@ import com.iss.models.AccessStatus;
 import com.iss.models.Course;
 import com.iss.models.CourseReportData;
 import com.iss.models.Payment;
+import com.iss.models.PaymentFor;
 import com.iss.models.PaymentStatus;
 import com.iss.models.SubscriptionStatus;
 import com.iss.models.TaskProgress;
@@ -38,7 +40,6 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
 
 import jakarta.annotation.PostConstruct;
-
 
 
 @Service
@@ -58,6 +59,7 @@ public class RazorPayForCourseService {
     
     @Autowired
     private JapserReportService jasperReportService;
+    
 
     @Value("${razorpay.key}")
     private String apiKey;
@@ -89,6 +91,16 @@ public class RazorPayForCourseService {
     	return userrepos.findByUsernameOrEmail(email, email).get();
     }
     public Map<String,Object> createCourseSubscriptionOrder(int courseId,String email) throws Exception {
+    	
+    	boolean alreadySubscribed = this.usercourseService.existsByCourseIdAndUserEmailAndSubscriptionStatus(
+                courseId, 
+                email, 
+                SubscriptionStatus.ACTIVE
+            );
+
+            if (alreadySubscribed) {
+                throw new IllegalStateException("User is already subscribed to this course.");
+            }
     	double amount=fetchCoursePrice(courseId);
         int amountInPaise = (int) (amount * 100);
         JSONObject orderRequest = new JSONObject();
@@ -107,7 +119,7 @@ public class RazorPayForCourseService {
         map.put("amount", amount);
         return map;
     }
-	public UserCourseDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
+	public CoursePayementVerificationDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
 		try {
             String razorpayOrderId = paymentDetails.get("orderId");
             String razorpayPaymentId = paymentDetails.get("paymentId");
@@ -125,14 +137,46 @@ public class RazorPayForCourseService {
         }
 		return null;		
 	}
-	private UserCourseDto processPaymentAsync(JSONObject paymentData) {
+	private CoursePayementVerificationDto processPaymentAsync(JSONObject paymentData) {
+		String razorpayPaymentId = paymentData.getString("id");
+        if (paymentRepos.existsByPaymentIdRazorpay(razorpayPaymentId)) {
+            System.out.println("Payment " + razorpayPaymentId + " already processed. Skipping.");
+            UserCourse existingUc = paymentRepos.findByPaymentIdRazorpay(razorpayPaymentId).get().getUsercourse();
+            return this.buildPaymentVerification(existingUc);
+        }
         JSONObject metaData = paymentData.getJSONObject("notes");
         String email = metaData.getString("user_email");
         int courseid = (int) metaData.get("course_id");
 
         User user = fetchUser(email);
         Course course = fetchCourse(courseid);
-        UserCourse usercourse = UserCourse.builder()
+        UserCourse usercourse = this.buildUserCourse(user, course);
+        usercourse = this.usercourseService.add(usercourse);
+        
+
+        Payment payment = this.buildPaymentRecord(paymentData, usercourse, user);
+
+
+        Payment savedPayment = paymentRepos.save(payment);
+        
+        this.handlePostPaymentWork(course, savedPayment, user);
+        
+        return this.buildPaymentVerification(usercourse);
+    }
+	
+	@Async
+	private void handlePostPaymentWork(Course course,Payment payment,User user)
+	{
+		CourseReportData courseReport = CourseReportData.builder().coursecategory(course.getCourseCategory().getCategory()).email(user.getEmail()).name(user.getUsername())
+        		.enrolledcourse(course.getCoursename()).gst(payment.getTax().doubleValue()).invoiceno("").paymentid(payment.getPaymentMethod())
+        		.paymentid(""+payment.getPaymentId()).paymentdate(Timestamp.valueOf(payment.getPaymentDate())).transactionid(payment.getAcquirerTransactionId())
+        		.subscriptionfee(payment.getAmount().doubleValue()).subtotal(payment.getAmount().doubleValue()).upi(payment.getVpa()).build();
+        this.jasperReportService.createAndSendCoursePaymentInvoiceReport(courseReport);
+	}
+	
+	private UserCourse buildUserCourse(User user,Course course)
+	{
+		UserCourse usercourse = UserCourse.builder()
                 .course(course)
                 .user(user)
                 .subscriptionStatus(SubscriptionStatus.ACTIVE)
@@ -148,7 +192,7 @@ public class RazorPayForCourseService {
 
                     List<UserTask> userTasks = new ArrayList<>();
                     for (Tasks t : v.getTasks()) {
-                        userTasks.add(UserTask.builder().task(t).uservedio(userVedio).paymentStatus(PaymentStatus.PENDING).taskProgress(TaskProgress.PENDING).accessStatus(AccessStatus.LOCKED).build());
+                        userTasks.add(UserTask.builder().task(t).uservedio(userVedio).paymentStatus(PaymentStatus.PENDING).taskProgress(TaskProgress.NOT_STARTED).accessStatus(AccessStatus.LOCKED).build());
                     }
                     userVedio.setUsertask(userTasks);
                     return userVedio;
@@ -159,22 +203,26 @@ public class RazorPayForCourseService {
         	userVedios.getFirst().setAccessStatus(AccessStatus.UNLOCKED);
         }
         usercourse.setUserVedios(userVedios);
-        UserCourseDto newusercourse=this.usercourseService.add(usercourse);
-        long createdAt = paymentData.getLong("created_at");
+		return usercourse;
+	}
+	
+	private Payment buildPaymentRecord(JSONObject paymentData , UserCourse usercourse, User user)
+	{
+		long createdAt = paymentData.getLong("created_at");
         LocalDateTime paymentDateTime = LocalDateTime.ofEpochSecond(createdAt, 0, ZoneOffset.UTC);
 
         BigDecimal amount = new BigDecimal(paymentData.getInt("amount")).divide(BigDecimal.valueOf(100));
         BigDecimal fee = new BigDecimal(paymentData.getInt("fee")).divide(BigDecimal.valueOf(100));
         BigDecimal tax = new BigDecimal(paymentData.getInt("tax")).divide(BigDecimal.valueOf(100));
-
-        Payment payment = Payment.builder()
+        
+        Payment payment =  Payment.builder()
                 .amount(amount)
                 .currency(paymentData.getString("currency"))
                 .fee(fee)
                 .tax(tax)
                 .usercourse(usercourse)
                 .paymentStatus(PaymentStatus.COMPLETED)
-                .paymentFor(Payment.PaymentType.COURSE)
+                .paymentFor(PaymentFor.COURSE)
                 .paymentDate(paymentDateTime)
                 .paymentIdRazorpay(paymentData.getString("id"))
                 .orderId(paymentData.optString("order_id"))
@@ -185,17 +233,14 @@ public class RazorPayForCourseService {
                 .acquirerTransactionId(paymentData.getJSONObject("acquirer_data").optString("upi_transaction_id"))
                 .rrn(paymentData.getJSONObject("acquirer_data").optString("rrn"))
                 .description(paymentData.optString("description"))
-                .user(user) // Use your service method
+                .user(user) 
                 .build();
-
-
-        paymentRepos.save(payment);
-        CourseReportData courseReport = CourseReportData.builder().coursecategory(course.getCourseCategory().getCategory()).email(email).name(user.getUsername())
-        		.enrolledcourse(course.getCoursename()).gst(payment.getTax().doubleValue()).invoiceno("").paymentid(payment.getPaymentMethod())
-        		.paymentid(""+payment.getPaymentId()).paymentdate(Timestamp.valueOf(payment.getPaymentDate())).transactionid(payment.getAcquirerTransactionId())
-        		.subscriptionfee(payment.getAmount().doubleValue()).subtotal(payment.getAmount().doubleValue()).upi(payment.getVpa()).build();
-        this.jasperReportService.createAndSendCoursePaymentInvoiceReport(courseReport);
-        return newusercourse;
-    }
-
+        
+		return payment;
+	}
+	
+	private CoursePayementVerificationDto buildPaymentVerification(UserCourse usercourse)
+	{
+		return new CoursePayementVerificationDto(usercourse.getId(),usercourse.getCourse().getId() , PaymentFor.COURSE,usercourse.getSubscriptionStatus(),"Success");
+	}
 }

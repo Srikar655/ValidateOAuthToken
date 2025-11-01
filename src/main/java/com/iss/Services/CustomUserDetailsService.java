@@ -64,20 +64,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     	}
     }
     
-    public org.springframework.security.core.userdetails.UserDetails add(User user)
+    public User add(User user)
 	{
 		try
 		{
 			user=userRepository.save(user);
-			Set<GrantedAuthority> authorities = user.getRoles().stream()
-	                .map(role -> new SimpleGrantedAuthority(role.getName()))
-	                .collect(Collectors.toSet());
-			org.springframework.security.core.userdetails.User u= new org.springframework.security.core.userdetails.User(
-	                user.getEmail(),
-	                 "",
-	                authorities
-	        );
-			return u;
+			return user;
 			
 		}
 		catch(Exception ex)

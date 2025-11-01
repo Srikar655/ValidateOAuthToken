@@ -61,7 +61,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name="payment_for")
-    private PaymentType paymentFor;  // Payment purpose, like course, task, etc.
+    private PaymentFor paymentFor;  // Payment purpose, like course, task, etc.
 
     @Column(nullable = false)
     private LocalDateTime paymentDate;  // Date and time of payment creation
@@ -93,10 +93,4 @@ public class Payment {
     @Column(nullable = true)
     private String description;  // Description or purpose of the transaction
 
-    
-    public enum PaymentType {
-        COURSE,
-        EPISODE,
-        TASK
-    }
 }

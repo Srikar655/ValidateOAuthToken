@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.iss.models.CourseReportData;
@@ -39,7 +38,6 @@ public class JapserReportService {
 		this.emailService = emailService;
 	}
 	
-	@Async
 	public void createAndSendCoursePaymentInvoiceReport(CourseReportData courseReportData) {
 		try {
 			// Create a map of parameters for the report
@@ -75,7 +73,6 @@ public class JapserReportService {
 			ex.printStackTrace();
 		}
 	}
-	@Async
 	public void createAndSendVideoPaymentInvoiceReport(VideoReportData videoReportData) {
 		try {
 			// Create a map of parameters for the report
@@ -113,7 +110,6 @@ public class JapserReportService {
 			ex.printStackTrace();
 		}
 	}
-	@Async
 	public void createAndSendTaskPaymentInvoiceReport(TaskReprotData taskReportData) {
 		try {
 			// Create a map of parameters for the report

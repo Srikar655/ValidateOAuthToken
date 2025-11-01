@@ -3,6 +3,9 @@ package com.iss.Services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.iss.Dto.CourseCategoryDTO;
@@ -18,7 +21,7 @@ public class CourseCategoryService  {
     public CourseCategoryService(CourseCategoryRepository courseCategoryRepository) {
         this.courseCategoryRepository = courseCategoryRepository;
     }
-
+    @Cacheable("courseCategories")
     public List<CourseCategory> getAllCourseCategories() {
         try {
             return courseCategoryRepository.findAll();
@@ -27,7 +30,7 @@ public class CourseCategoryService  {
             throw new RuntimeException("Error fetching all course categories", ex);
         }
     }
-
+    @Cacheable(value = "courseCategories", key = "#id")
     public CourseCategory getCourseCategoryById(int id) {
         try {
         	Optional<CourseCategory> course= courseCategoryRepository.findById(id);
@@ -37,7 +40,10 @@ public class CourseCategoryService  {
             throw new RuntimeException("Error fetching course category with id " + id, ex);
         }
     }
-
+    @Caching(evict = {
+            @CacheEvict(value = "courseCategories", allEntries = true), // Evict the entire list
+            @CacheEvict(value = "courseCategories", key = "#courseCategory.id") // Evict the specific item
+        })
     public CourseCategoryDTO saveOrUpdateCourseCategory(CourseCategory courseCategory) {
         try {
         	System.out.println(courseCategory);
@@ -49,7 +55,10 @@ public class CourseCategoryService  {
             throw new RuntimeException("Error saving or updating course category", ex);
         }
     }
-
+    @Caching(evict = {
+            @CacheEvict(value = "courseCategories", allEntries = true), // Evict the entire list
+            @CacheEvict(value = "courseCategories", key = "#courseCategory.id") // Evict the specific item
+        })
     public void deleteCourseCategoryById(int id) {
         try {
             if (courseCategoryRepository.existsById(id)) {
@@ -62,7 +71,10 @@ public class CourseCategoryService  {
             throw new RuntimeException("Error deleting course category with id " + id, ex);
         }
     }
-
+    @Caching(evict = {
+            @CacheEvict(value = "courseCategories", allEntries = true), // Evict the entire list
+            @CacheEvict(value = "courseCategories", key = "#courseCategory.id") // Evict the specific item
+        })
     public CourseCategory updateCourseCategory(CourseCategory updatedCategory) {
         try {
             Optional<CourseCategory> existingCategoryOpt = courseCategoryRepository.findById(updatedCategory.getId());

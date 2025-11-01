@@ -1,11 +1,10 @@
 package com.iss.controllers;
 
-import com.iss.Dto.TasksDto;
+import com.iss.Dto.TaskCreateDto;
+import com.iss.Dto.TaskListDisplayDto;
+import com.iss.Dto.TaskUpdateDto;
+import com.iss.Dto.TasksDetailDto;
 import com.iss.Services.TasksService;
-import com.iss.models.Tasks;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,12 +22,11 @@ public class TaskController {
         this.tasksService = tasksService;
     }
 
-    // Task add cheyyadam
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
-    public ResponseEntity<?> addTask(@RequestBody Tasks tasks) {
+    public ResponseEntity<?> addTask(@RequestBody TaskCreateDto taskCreateDto) {
         try {
-            TasksDto addedTask = tasksService.add(tasks);
+        	TasksDetailDto addedTask = tasksService.add(taskCreateDto);
             if (addedTask != null) {
                 return ResponseEntity.ok(addedTask);
             } else {
@@ -40,12 +38,11 @@ public class TaskController {
         }
     }
 
-    // Task update cheyyadam
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/update")
-    public ResponseEntity<?> updateTask(@RequestBody Tasks tasks) {
+    public ResponseEntity<?> updateTask(@RequestBody TaskUpdateDto taskUpdateDto) {
         try {
-            TasksDto updatedTask = tasksService.update(tasks);
+        	TasksDetailDto updatedTask = tasksService.update(taskUpdateDto);
             if (updatedTask != null) {
                 return ResponseEntity.ok(updatedTask);
             } else {
@@ -56,28 +53,12 @@ public class TaskController {
         }
     }
 
-    // Video ki sambandhichina tasks ni get cheyyadam
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/getAll")
-    public ResponseEntity<?> getTasksByVideoId(@RequestParam int videoId, @RequestParam int size, @RequestParam int page) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            List<TasksDto> tasks = tasksService.findByVideoId(videoId, pageable);
-            if (!tasks.isEmpty()) {
-                return ResponseEntity.ok(tasks);
-            } else {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No tasks available for this video.");
-            }
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
-        }
-    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/get")
-    public ResponseEntity<?> getTask(@RequestParam int taskId) {
+    @GetMapping("/get/{id}")
+    public ResponseEntity<?> getTask(@PathVariable int id) {
         try {
-            TasksDto task = tasksService.find(taskId);
+        	TasksDetailDto task = tasksService.find(id);
             if (task != null) {
                 return ResponseEntity.ok(task);
             } else {
@@ -87,8 +68,22 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
         }
     }
+    
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+    @GetMapping("/getAllByVideoId/{videoId}")
+    public ResponseEntity<?> getAllTasksByVideoId(@PathVariable("videoId") int videoId) {
+        try {
+        	List<TaskListDisplayDto> taskListDisplayDto = tasksService.findAllByVideoId(videoId);
+            if (!taskListDisplayDto.isEmpty()) {
+                return ResponseEntity.ok(taskListDisplayDto);
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+        }
+    }
 
-    // Task delete cheyyadam
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteTask(@RequestParam int taskId) {

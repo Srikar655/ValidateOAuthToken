@@ -24,13 +24,7 @@ public class UserDto
     private String username;
     private String email;
 
-    private String password;
     private String Picture;
     private String phonenumber;
-    private Set<Role> role ;
-    private Timestamp createdAt;
-	List<UserCourseDto> usercourse;
-    
-	private List<PaymentDto> payments;
-	private List<Notifications> notifications;
+    private Set<Role> roles ;
 }

@@ -5,13 +5,18 @@ import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
+import com.iss.Dto.UserCourseDisplayDto;
 import com.iss.Dto.UserCourseDto;
 
 import com.iss.Mappers.UserCourseMapper;
 import com.iss.Repos.CourseRepository;
 import com.iss.Repos.UserCourseRepository;
-import com.iss.models.Course;
 import com.iss.models.SubscriptionStatus;
 import com.iss.models.UserCourse;
 
@@ -25,11 +30,13 @@ public class UserCourseService {
 		this.repos=repos;
 		this.courserepos=courserepos;
 	}
-	public UserCourseDto add(UserCourse user)
+	@CacheEvict(value = "userCourseDisplay", key = "#userCourse.course.id + '_' + #userCourse.user.email")
+    @Transactional
+	public UserCourse add(UserCourse userCourse)
 	{
 		try
 		{
-			return UserCourseMapper.Instance.toDto(repos.save(user));
+			return repos.save(userCourse);
 		}
 		catch(Exception ex)
 		{
@@ -37,6 +44,22 @@ public class UserCourseService {
 			return null;
 		}
 	}
+	
+	@Caching(
+	        put = {
+	            @CachePut(value = "userCourse", key = "#userCourse.id"),
+	            @CachePut(value = "userCourseDisplay", key = "#userCourse.course.id + '_' + #userCourse.user.email")
+	        }
+	    )
+	    @Transactional
+	    public UserCourseDto update(UserCourse userCourse) throws NotFoundException {
+	        if (!repos.existsById(userCourse.getId())) {
+	            throw new NotFoundException();
+	        }
+	        UserCourse updated = repos.save(userCourse);
+	        return UserCourseMapper.Instance.toDto(updated);
+	    }
+	
 	public List<UserCourseDto> findAll()
 	{
 		try
@@ -50,6 +73,8 @@ public class UserCourseService {
 			return null;
 		}
 	}
+	@Cacheable(value = "userCourse", key = "#id")
+    @Transactional(readOnly = true)
 	public UserCourseDto find(int id)
 	{
 		try
@@ -63,32 +88,47 @@ public class UserCourseService {
 		}
 	}
 	@Cacheable(
-		    value = "userCourses",
+		    value = "userCourseDisplay",
 		    key = "#id + '_' + #email",
 		    unless = "#result == null or #result.subscriptionStatus.name() == 'PENDING'"
 		)
-		public UserCourseDto findByCourseId(int id, String email) {
-		    try {
-		        Optional<UserCourse> usercourse = repos.findByCourseIdAndEmail(id, email);
+		public UserCourseDisplayDto findByCourseId(int id, String email) {
+			try {
+		        Optional<UserCourseDisplayDto> userCourseOpt = repos.findByCourseIdAndEmail(id, email);
 		        
-		        if (usercourse.isPresent()) {
-		            return UserCourseMapper.Instance.toDto(usercourse.get());
+		        UserCourseDisplayDto baseDto;
+		        if (userCourseOpt.isPresent()) {
+		            baseDto = userCourseOpt.get();
 		        } else {
-		            Course c = this.courserepos.findById(id).orElseThrow();
+		            baseDto = courserepos.findByCourseIdForUserDisplay(id)
+		                .orElse(null); 
 		            
-		            UserCourse uc = UserCourse.builder()
-		                .course(c)
-		                .subscriptionStatus(SubscriptionStatus.PENDING)
-		                .build();
-		                
-		            return UserCourseMapper.Instance.toDto(uc);
 		        }
+		        
+		        if (baseDto == null) {
+		            return null;
+		        }
+	
+		        List<String> features = courserepos.findCourseFeaturesById(id);
+	
+		        baseDto.setCourseFeatures(features);
+		        
+		        return baseDto;
+	
 		    } catch (Exception ex) {
 		        ex.printStackTrace();
-		        return null;
+		        throw new RuntimeException("Error assembling course details for course id " + id, ex);
+		        //return null;
 		    }
 		}
 
+	@Caching(
+	        evict = {
+	            @CacheEvict(value = "userCourse", key = "#id"),
+	            @CacheEvict(value = "userCourseDisplay", key = "#result.course.id + '_' + #result.user.email")
+	        }
+    )
+    @Transactional
 	public void delete(int id)
 	{
 		try
@@ -100,4 +140,14 @@ public class UserCourseService {
 			ex.printStackTrace();
 		}
 	}
+	
+	public boolean existsByCourseIdAndUserEmailAndSubscriptionStatus(
+	        int courseId, 
+	        String userEmail, 
+	        SubscriptionStatus subscriptionStatus
+	    )
+	{
+		return this.repos.existsByCourseIdAndUserEmailAndSubscriptionStatus(courseId, userEmail, subscriptionStatus);
+	}
+
 }

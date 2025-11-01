@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.iss.models.TaskProgress;
+import com.iss.models.UserTask;
 import com.iss.models.UsersTaskSolution;
 @Repository
 public interface UserTaskSolutionRepos extends JpaRepository<UsersTaskSolution, Integer> {
@@ -18,4 +19,6 @@ public interface UserTaskSolutionRepos extends JpaRepository<UsersTaskSolution, 
 
 	@Query("SELECT uts.solutionimages FROM UsersTaskSolution uts WHERE uts.id = :userSolutionId")
 	Optional<List<byte[]>> findSolutionImagesById(int userSolutionId);
+	
+	List<UsersTaskSolution> findByUsertask(UserTask userTask);
 }

@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.Builder;
 
 @Entity
 @NoArgsConstructor
@@ -24,6 +25,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(exclude = "tasks")
+@Builder
 public class Vedio {
 	@Id
 	@GeneratedValue

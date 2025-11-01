@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
 
-import com.iss.models.Vedio;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,12 +14,10 @@ public class CourseDto {
 	private int id;
 	private String coursename;
 	private double courseprice;
-	private byte[] coursethumbnail;
-	private List<Vedio> vedios;
+	private String coursethumbnail;
 	private String courseTrailer;
 	private String courseDescription;
 	private List<String> courseFeatures;
-	private List<UserCourseDto> usercourse;
-	private CourseCategoryDTO courseCategory;
+	private int courseCateogryId;
 
 }

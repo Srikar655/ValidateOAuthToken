@@ -13,12 +13,13 @@ import com.iss.models.EmailDetails;
 import com.iss.models.User;
 
 
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.iss.Dto.UserDto;
+import com.iss.Mappers.UserMapper;
 import com.iss.Repos.RoleRepository;
 import com.iss.Services.CustomUserDetailsService;
 import com.iss.Services.EmailService;
@@ -44,41 +45,39 @@ public class ValidController
 		this.roleRepos = roleRepos;
 		this.emailService=emailService;
 	}
-	@GetMapping("/userinfo")
-    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
-
-		String email = jwt.getClaim("email");
-        UserDetails user;
-
-        try {
-            user = this.userService.loadUserByUsername(email);
-            if(user==null)
-            {
-            	String name= jwt.getClaimAsString("name");
-        		String picture=jwt.getClaimAsString("picture");
-        		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
-    			user=userService.add(u);
-            }
-        } catch (Exception e) {
-        	e.printStackTrace();
-        	return ResponseEntity.status(500).body("Error in the userinfo: " + e.getMessage());
-        }
-
-        return ResponseEntity.ok(user);
-    }
+//	@GetMapping("/userinfo")
+//    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+//
+//		String email = jwt.getClaim("email");
+//        UserDetails user;
+//
+//        try {
+//            user = this.userService.loadUserByUsername(email);
+//            if(user==null)
+//            {
+//            	String name= jwt.getClaimAsString("name");
+//        		String picture=jwt.getClaimAsString("picture");
+//        		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
+//    			user=userService.add(u);
+//            }
+//        } catch (Exception e) {
+//        	e.printStackTrace();
+//        	return ResponseEntity.status(500).body("Error in the userinfo: " + e.getMessage());
+//        }
+//
+//        return ResponseEntity.ok(user);
+//    }
 	@GetMapping("/login")
     public ResponseEntity<?> login(@AuthenticationPrincipal Jwt jwt) {
 		
 		 
 		String email = jwt.getClaim("email");
-        UserDetails user;
+        User user;
 
         try {
-            user = this.userService.loadUserByUsername(email);
-            System.out.println(user);
+            user = this.userService.find(email);
             if(user==null)
             {
-            	System.out.println(user);
             	String name= jwt.getClaimAsString("name");
         		String picture=jwt.getClaimAsString("picture");
         		User u=User.builder().email(email).username(name).Picture(picture).createdAt(new Timestamp(System.currentTimeMillis())).roles(Set.of(roleRepos.findByName("ROLE_USER"))).build();
@@ -89,7 +88,6 @@ public class ValidController
             em.setSubject("Welcome to Innovative Tutorials - You're All Set to Start Your Learning Journey!");
 
             em.setMsgBody(message.formatted(email));
-            System.out.println("Sending");
 
             emailService.sendSimpleMail(em);
         } catch (Exception e) {
@@ -97,8 +95,9 @@ public class ValidController
         	e.printStackTrace();
         	return ResponseEntity.status(500).body("Error logging the user: " + e.getMessage());
         }
-
-        return ResponseEntity.ok(user);
+        UserDto userDto=UserMapper.Instance.toDto(user);
+        userDto.setPicture(user.getPicture());
+        return ResponseEntity.ok(userDto);
          
          
     }	

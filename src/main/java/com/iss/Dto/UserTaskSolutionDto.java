@@ -1,9 +1,13 @@
 package com.iss.Dto;
 
 
-import java.util.List;
 
 
+import java.sql.Timestamp;
+
+import com.iss.models.CorrectionStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +20,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserTaskSolutionDto {
 	private int id;
-	private List<byte[]> solutionimages;
-	
+	@Lob
+	private String solutionimages;
+	@Lob 
+	private String submissionText;
+	@Column(length = 2048)
+	private String submissionUrl;
+	private Timestamp submittedAt;
+	private Timestamp reviewedAt;
 	private String description;
-	private UserTaskDto usertask;
+	private int userTaskId;
 	private String email;
+	private CorrectionStatus correctionStatus;
 	
 }

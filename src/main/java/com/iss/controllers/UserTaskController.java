@@ -1,6 +1,8 @@
 package com.iss.controllers;
 
+import com.iss.Dto.UserTaskDetailDisplayDto;
 import com.iss.Dto.UserTaskDto;
+import com.iss.Dto.UserTaskListDisplayDto;
 import com.iss.Services.UserTaskService;
 import com.iss.models.UserTask;
 
@@ -42,14 +44,11 @@ public class UserTaskController {
 
     // Get UserTasks by UserVedio ID (Paginated)
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @GetMapping("/usertasks-byvedioId")
-    public ResponseEntity<List<UserTaskDto>> getUserTasksByUserVedioId(
-            @RequestParam int userVedioId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    @GetMapping("/getByUserVideoId/{userVideoId}")
+    public ResponseEntity<List<UserTaskListDisplayDto>> getUserTasksByUserVedioId(
+            @PathVariable("userVideoId") int userVideoId) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        List<UserTaskDto> userTasks = userTaskService.findByUserVedioId(userVedioId, pageable);
+        List<UserTaskListDisplayDto> userTasks = userTaskService.findByUserVedioId(userVideoId);
 
         if (userTasks != null && !userTasks.isEmpty()) {
             return new ResponseEntity<>(userTasks, HttpStatus.OK);
@@ -61,10 +60,10 @@ public class UserTaskController {
     // Get UserTask by ID
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}")
-    public ResponseEntity<UserTaskDto> getUserTaskById(@PathVariable("id") int id) {
-        UserTaskDto userTaskDto = userTaskService.find(id);
-        if (userTaskDto != null) {
-            return new ResponseEntity<>(userTaskDto, HttpStatus.OK);
+    public ResponseEntity<UserTaskDetailDisplayDto> getUserTaskById(@PathVariable("id") int id) {
+    	UserTaskDetailDisplayDto userTaskDetailDisplayDto = userTaskService.find(id);
+        if (userTaskDetailDisplayDto != null) {
+            return new ResponseEntity<>(userTaskDetailDisplayDto, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

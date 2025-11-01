@@ -2,26 +2,27 @@ package com.iss.controllers;
 
 import com.iss.Dto.UserTaskSolutionDto;
 import com.iss.Dto.UserTaskSolutionImagesDto;
+import com.iss.Services.CreateUsersTaskSolutionDto;
 import com.iss.Services.NotificationService;
 import com.iss.Services.UserTaskSolutionService;
-import com.iss.models.NotificationType;
-import com.iss.models.Notifications;
 import com.iss.models.UsersTaskSolution;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user-task-solution")
+@RequestMapping("/api/user-task-solutions")
 public class UserTaskSolutionController {
 
     
@@ -67,18 +68,21 @@ public class UserTaskSolutionController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @PostMapping
-    public ResponseEntity<?> addUserTaskSolution(@RequestBody UsersTaskSolution userTaskSolution,@AuthenticationPrincipal Jwt jwt) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> addUserTaskSolution(
+            @RequestPart("solutionData") CreateUsersTaskSolutionDto userTaskSolution,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @AuthenticationPrincipal Jwt jwt) {
+    	System.out.println(userTaskSolution.getUserTaskId());
         try {
-        	String emailString=jwt.getClaimAsString("email");
-        	userTaskSolution.setSubmittedAt(new Timestamp(System.currentTimeMillis()));
-        	userTaskSolution.setEmail(emailString);
-        	String message = "New Task Submitted by " + emailString;
-            UserTaskSolutionDto addedUserTaskSolutionDto = this.userTaskSolutionService.add(userTaskSolution);
-            Notifications notification=Notifications.builder().sender(emailString).receiver("ADMIN").message(message).type(NotificationType.INFO).build();
-            this.notificationService.sendNotificationToAdmin(notification);
+            String email = jwt.getClaimAsString("email");
+            UserTaskSolutionDto addedUserTaskSolutionDto = this.userTaskSolutionService.add(userTaskSolution, files, email);
             return new ResponseEntity<>(addedUserTaskSolutionDto, HttpStatus.CREATED);
-        } catch (Exception ex) {
+        }catch(DuplicateKeyException ex) {
+        	return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }

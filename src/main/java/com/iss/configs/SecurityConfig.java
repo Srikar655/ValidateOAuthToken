@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -72,9 +73,13 @@ public class SecurityConfig {
 
 	 @Bean
 	    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-	        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));  // Use custom CORS configuration
+	        http.cors(cors -> cors.configurationSource(corsConfigurationSource())); 
+	        http.csrf(c->c.disable());// Use custom CORS configuration
 	    	http
 	                .authorizeHttpRequests(authorize -> authorize
+	                				.requestMatchers(HttpMethod.GET,"/api/courses/*/thumbnail").permitAll()
+	                				.requestMatchers("/uploads/**").permitAll()
+	                				.requestMatchers(HttpMethod.POST,"/payment/webhook").permitAll()
 	                                .requestMatchers("/api/**").authenticated()  // Protect specific endpoints
 	                                .anyRequest().permitAll()  // Allow other requests (adjust as needed)
 	                )
@@ -101,17 +106,14 @@ public class SecurityConfig {
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             String email = jwt.getClaim("email");
             Collection <? extends GrantedAuthority> collection=Collections.emptyList();
-
+            System.out.println(email);
             try {
                
             	UserDetails user=userservice.loadUserByUsername(email);
-            	System.out.println("HELLO");
-            	System.out.println(user);
             	if(user!=null)
             	{
             		System.out.println(user.getAuthorities());
             		collection=user.getAuthorities();
-            		System.out.println(collection);
             		
             	}
             	//collection=this.userservice.getAuthorities(email);
@@ -129,9 +131,9 @@ public class SecurityConfig {
     }
     @Bean
      CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("users","userauthorities","courses","coursethumbnail","videos","taskimages","tasks","userCourses","usertasks","userVedios");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("users","userauthorities","courseDetails","video","taskimages","tasks","task","userCourse","userCourseDisplay","userTask","userVideo","userVideoDetails","userTasksByUserVideo","userVedios","courseCategories","courseDetails");
         cacheManager.setCaffeine(Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)  // ⏱️ roles expire after 15 mins
+            .expireAfterWrite(10, TimeUnit.MINUTES)  
             .maximumSize(1000));
         return cacheManager;
     }

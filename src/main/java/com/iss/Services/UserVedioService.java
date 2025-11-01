@@ -1,31 +1,41 @@
 package com.iss.Services;
 
 import com.iss.Dto.UserVedioDto;
+import com.iss.Dto.UserVideoDetailDisplayDto;
 import com.iss.Mappers.UserVedioMapper;
 import com.iss.Repos.UserVideosRepository;
+import com.iss.Repos.VedioRepository;
 import com.iss.models.AccessStatus;
 import com.iss.models.PaymentStatus;
 import com.iss.models.UserVedio;
-
-import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import com.iss.models.Vedio;
+
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserVedioService {
 
     private final UserVideosRepository repos;
+    private final VedioRepository videoRepos;
 
-    public UserVedioService(UserVideosRepository repos) {
+    public UserVedioService(UserVideosRepository repos,VedioRepository videoRepos) {
         this.repos = repos;
+        this.videoRepos = videoRepos;
     }
-
+    
+    @CacheEvict(value = "userVideoDetails", key = "#userVedio.userCourse.id + '_' + #userVedio.vedio.id")
+    @Transactional
     public UserVedioDto add(UserVedio user) {
         try {
             UserVedio savedUserVedio = repos.save(user);
@@ -35,6 +45,20 @@ public class UserVedioService {
             throw new RuntimeException("Error adding the UserVedio", ex);
         }
     }
+    @Caching(
+            put = {
+                @CachePut(value = "userVideo", key = "#userVedio.id"),
+                @CachePut(value = "userVideoDetails", key = "#userVedio.userCourse.id + '_' + #userVedio.vedio.id")
+            }
+        )
+        @Transactional
+        public UserVedioDto update(UserVedio userVedio) throws NotFoundException {
+             if (!repos.existsById(userVedio.getId())) {
+                throw new NotFoundException();
+            }
+            UserVedio updated = repos.save(userVedio);
+            return UserVedioMapper.Instance.toDto(updated);
+        }
 
     public List<UserVedioDto> findAll(Pageable pageable) {
         try {
@@ -55,7 +79,8 @@ public class UserVedioService {
             throw new RuntimeException("Error fetching all UserVedios", ex);
         }
     }
-
+    @Cacheable(value = "userVideo", key = "#id")
+    @Transactional(readOnly = true)
     public UserVedioDto find(int id) {
         try {
             Optional<UserVedio> userVedioOpt = repos.findById(id);
@@ -66,30 +91,32 @@ public class UserVedioService {
             throw new RuntimeException("Error fetching the UserVedio with id " + id, ex);
         }
     }
-    public List<UserVedioDto> findByUsercourseId(int usercourseId, Pageable pageable) {
+    @Cacheable(value = "userVideoDetails", key = "#userCourseId + '_' + #videoId", unless = "#result == null")
+    @Transactional(readOnly = true)
+    public UserVideoDetailDisplayDto checkAccessAndGetVideoDetails(Integer userCourseId,int videoId) {
         try {
-            Page<UserVedio> page = repos.findByUsercourseId(usercourseId, pageable);
-            return page.getContent().stream()
-                .map(uservideo -> {
-                	if(uservideo.getAccessStatus().equals(AccessStatus.UNLOCKED))
-                	{
-	                    UserVedioDto dto = UserVedioMapper.Instance.toDto(uservideo);
-	                    if (uservideo.getPaymentStatus().equals(PaymentStatus.COMPLETED)) {
-	                        dto.getVedio().setVideourl(uservideo.getVedio().getVideourl());
-	                    }
-	                    return dto;
-                	}
-                	UserVedioDto dto=new UserVedioDto();
-                	BeanUtils.copyProperties(uservideo, dto,"vedio","usercourse","usertask","payments");
-                	return dto;
-                })
-                .collect(Collectors.toList());
+        	if (userCourseId != null && userCourseId > 0) {
+            	Optional<UserVedio> userVideoOptional = repos.findByUserCourseIdAndVedioId(userCourseId,videoId);
+            
+            	UserVideoDetailDisplayDto dto = userVideoOptional
+                        .map(this::buildUserVideoDetailDisplayDto)
+                        .orElse(null);
+            	return dto;
+            }
+            
+            return this.videoRepos.findPublicVideoDetailsById(videoId).orElse(null);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Error fetching UserVedios by Usercourse ID", ex);
         }
     }
-
+    @Caching(
+            evict = {
+                @CacheEvict(value = "userVideo", key = "#id"),
+                @CacheEvict(value = "userVideoDetails", key = "#result.userCourse.id + '_' + #result.vedio.id")
+            }
+        )
+        @Transactional
     public void delete(int id) {
         try {
             if (repos.existsById(id)) {
@@ -111,5 +138,22 @@ public class UserVedioService {
             ex.printStackTrace();
             throw new RuntimeException("Error fetching price for UserVedio with id " + userVideoId, ex);
         }
+    }
+    private UserVideoDetailDisplayDto buildUserVideoDetailDisplayDto(UserVedio userVideo)
+    {
+    	UserVideoDetailDisplayDto dto;
+    	Vedio video = userVideo.getVedio();
+ 
+        dto = new UserVideoDetailDisplayDto(userVideo.getId(),video.getId(),video.getVediotitle(),video.getVediodescription(),video.getVedioprice(),userVideo.getAccessStatus(),userVideo.getPaymentStatus());
+        if (userVideo.getAccessStatus().equals(AccessStatus.UNLOCKED) && userVideo.getPaymentStatus().equals(PaymentStatus.COMPLETED)) {
+            dto.setVideoUrl(video.getVideourl());
+        }
+        else
+        {
+        	dto.setVideoUrl(null);
+        }
+        return dto;
+    	
+    	
     }
 }

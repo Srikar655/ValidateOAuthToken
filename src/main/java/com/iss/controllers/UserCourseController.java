@@ -1,6 +1,6 @@
 package com.iss.controllers;
 
-import com.iss.models.UserCourse;
+import com.iss.Dto.UserCourseDisplayDto;
 import com.iss.Dto.UserCourseDto;
 import com.iss.Services.UserCourseService;
 
@@ -37,9 +37,10 @@ public class UserCourseController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}")
-    public ResponseEntity<UserCourseDto> getUserCourseById(@PathVariable("id") int id,@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<UserCourseDisplayDto> getUserCourseById(@PathVariable("id") int id,@AuthenticationPrincipal Jwt jwt) {
  
-        UserCourseDto userCourseDto = userCourseService.findByCourseId(id,jwt.getClaimAsString("email"));
+    	UserCourseDisplayDto userCourseDto = userCourseService.findByCourseId(id,jwt.getClaimAsString("email"));
+
         if (userCourseDto != null) {
             return new ResponseEntity<>(userCourseDto, HttpStatus.OK);
         } else {
@@ -47,16 +48,16 @@ public class UserCourseController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @PostMapping
-    public ResponseEntity<UserCourseDto> addUserCourse(@RequestBody UserCourse userCourseDto) {
-        try {
-            UserCourseDto addedUserCourse = userCourseService.add(userCourseDto);
-            return new ResponseEntity<>(addedUserCourse, HttpStatus.CREATED);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+//    @PostMapping
+//    public ResponseEntity<UserCourseDto> addUserCourse(@RequestBody UserCourse userCourseDto) {
+//        try {
+//            UserCourseDto addedUserCourse = userCourseService.add(userCourseDto);
+//            return new ResponseEntity<>(addedUserCourse, HttpStatus.CREATED);
+//        } catch (Exception ex) {
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @DeleteMapping("/{id}")

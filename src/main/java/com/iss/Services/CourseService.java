@@ -1,136 +1,178 @@
 package com.iss.Services;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
+import com.iss.Dto.CourseCreateDto;
+import com.iss.Dto.CourseDetailDto;
+import com.iss.Dto.CourseFeaturesUpdateDto;
+import com.iss.Dto.CourseListDisplayDto;
+import com.iss.Dto.CourseUpdateDto;
+import com.iss.Repos.CourseCategoryRepository;
 import com.iss.Repos.CourseRepository;
 import com.iss.models.Course;
-import com.iss.Dto.*;
-import com.iss.Mappers.CourseMapper;
+import com.iss.models.CourseCategory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
 
 @Service
 public class CourseService {
+
     private final CourseRepository repos;
+    private final LocalFileStorageService localFileStorageService;
+    private final CourseCategoryRepository courseCategoryRepository;
 
-    public CourseService(CourseRepository repos) {
+    public CourseService(CourseRepository repos, LocalFileStorageService localFileStorageService, CourseCategoryRepository courseCategoryRepository) {
         this.repos = repos;
+        this.localFileStorageService = localFileStorageService;
+        this.courseCategoryRepository = courseCategoryRepository;
     }
 
-    public CourseDto add(Course course) {
+  
+    @Transactional
+    public CourseDetailDto add(CourseCreateDto courseCreateDto, MultipartFile courseThumbnail) throws NotFoundException {
         try {
-        	Course c=repos.save(course);
-            return CourseMapper.Instance.toDto(c);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error adding the course", ex);
+            Course newCourse = buildCourse(courseCreateDto, courseThumbnail);
+            Course savedCourse = repos.save(newCourse);
+            return buildCourseDetailDto(savedCourse);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not process thumbnail file during course creation.", e);
         }
     }
-    public double getCoursePrice(int id) throws Exception
-    {
-    	try
-    	{
-    		Optional<Double> optionalprice=repos.getCoursePriceByCourseId(id);
-    		if(optionalprice.isPresent())
-    		{
-    			return repos.getCoursePriceByCourseId(id).get();
-    		}
-    		return 0;
-    	}catch(Exception ex)
-    	{
-    		ex.printStackTrace();
-    		throw new Exception("Error There is No Course Available");
-    	}
-    }
-    @Cacheable(value = "courses")
-    public List<CourseDto> findAll() {
-        List<CourseDto> list = null;
+
+
+    @Caching(
+        put = { @CachePut(value = "courseDetails", key = "#courseUpdateDto.id") }
+    )
+    @Transactional
+    public CourseDetailDto update(CourseUpdateDto courseUpdateDto, MultipartFile courseThumbnail) throws NotFoundException {
+        Course existingCourse = repos.findById(courseUpdateDto.getId())
+                .orElseThrow(() -> new NotFoundException());
+
         try {
-            List<Course> courselist = repos.findAll();
-            if(courselist!=null)
+            updateCourseDetails(existingCourse, courseUpdateDto, courseThumbnail);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not process new thumbnail file during update.", e);
+        }
+
+        Course savedCourse = repos.save(existingCourse);
+        return buildCourseDetailDto(savedCourse);
+    }
+    
+    @Caching(
+            put = { @CachePut(value = "courseDetails", key = "#courseFeaturesUpdateDto.id") }
+        )
+        @Transactional
+        public CourseDetailDto updateCourseFeatures(CourseFeaturesUpdateDto courseFeaturesUpdateDto) throws NotFoundException {
+            Course existingCourse = repos.findById(courseFeaturesUpdateDto.getId())
+                    .orElseThrow(() -> new NotFoundException());
+
+            this.updateCourseFeatures(existingCourse, courseFeaturesUpdateDto);
+            
+            try {
+            	Course savedCourse = repos.save(existingCourse);
+            	return buildCourseDetailDto(savedCourse);
+            }
+            catch(Exception ex)
             {
-            	list=CourseMapper.Instance.toDtoList(courselist);
+            	throw ex;
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error fetching all courses", ex);
+            
+            
         }
-        return list;
+
+    @Caching(
+        evict = {
+            @CacheEvict(value = "courseDetails", key = "#id"),
+        }
+    )
+    @Transactional
+    public void delete(int id) throws NotFoundException {
+        if (!repos.existsById(id)) {
+            throw new NotFoundException();
+        }
+        repos.deleteById(id);
     }
 
-    public CourseDto find(int id) {
-        try {
-            Optional<Course> courseOpt = repos.findById(id);
-            if (courseOpt.isPresent()) {
-                return CourseMapper.Instance.toDto(courseOpt.get());
-            } else {
-               return null;
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error fetching the course with id " + id, ex);
-        }
-    }
-    public Course findAndGetCourse(int id) {
-        try {
-            Optional<Course> courseOpt = repos.findById(id);
-            if (courseOpt.isPresent()) {
-                return courseOpt.get();
-            } else {
-               return null;
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error fetching the course with id " + id, ex);
-        }
-    }
-    @Cacheable(value = "coursethumbnail", key = "#id")
-    public CourseDto findThumbnail(int id) {
-        try {
-        	Optional<byte[]> optionalbytes=repos.findCoursethumbnailById(id);
-        	CourseDto dto=null;
-        	if(optionalbytes.isPresent())
-        	{
-        			dto = new CourseDto();
-        			dto.setCoursethumbnail(optionalbytes.get());
-        			dto.setId(id);
-        	}
-            return dto;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error fetching the course thumbnail with id " + id, ex);
-        }
+    @Cacheable(value = "courseDetails", key = "#id")
+    @Transactional(readOnly = true)
+    public CourseDetailDto find(int id) throws NotFoundException {
+        return repos.findById(id)
+                .map(this::buildCourseDetailDto)
+                .orElseThrow(() -> new NotFoundException());
     }
 
-    public CourseDto update(Course course) {
-        try {
-            Optional<Course> existingCourse = repos.findById(course.getId());
-            if (existingCourse.isPresent()) {
-            	Course c=existingCourse.get();
-            	BeanUtils.copyProperties(course,c ,"usercourse","vedios");
-                return CourseMapper.Instance.toDto(repos.save(c));
-            } else {
-                return null;
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error updating the course with id " + course.getId(), ex);
-        }
+
+
+
+
+    @Transactional(readOnly = true)
+    public Page<CourseListDisplayDto> findAll(List<Integer> categoryIds, String searchTerm, Pageable pageable) {
+        String effectiveSearchTerm = StringUtils.hasText(searchTerm) ? searchTerm : null;
+        List<Integer> effectiveCategoryIds = (categoryIds != null && !categoryIds.isEmpty()) ? categoryIds : null;
+        
+        return repos.findAllCourseSummaries(effectiveCategoryIds, effectiveSearchTerm, pageable);
     }
 
-    public void delete(int id) {
-        try {
-            if (repos.existsById(id)) {
-                repos.deleteById(id);
-            } else {
-                throw new RuntimeException("Course with id " + id + " not found, delete failed");
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Error deleting the course with id " + id, ex);
+    @Transactional(readOnly = true)
+    public Course findAndGetCourse(int id) throws NotFoundException {
+        return repos.findById(id)
+                .orElseThrow(() -> new NotFoundException());
+    }
+
+
+
+    private Course buildCourse(CourseCreateDto courseCreateDto, MultipartFile courseThumbnail) throws IOException, NotFoundException {
+        CourseCategory category = courseCategoryRepository.findById(courseCreateDto.getCourseCategoryId())
+                .orElseThrow(() -> new NotFoundException());
+        
+        String courseThumbnailUrl = this.localFileStorageService.store(courseThumbnail);
+        
+        return Course.builder()
+                .coursename(courseCreateDto.getCourseName())
+                .courseDescription(courseCreateDto.getCourseDescription())
+                .courseprice(courseCreateDto.getCoursePrice())
+                .courseTrailer(courseCreateDto.getCourseTrailer())
+                .coursethumbnail(courseThumbnailUrl)
+                .courseCategory(category)
+                .build();
+    }
+    
+    private void updateCourseDetails(Course course, CourseUpdateDto courseUpdateDto, MultipartFile courseThumbnail) throws IOException {
+        course.setCoursename(courseUpdateDto.getCourseName());
+        course.setCourseDescription(courseUpdateDto.getCourseDescription());
+        course.setCourseprice(courseUpdateDto.getCoursePrice());
+
+        if (courseThumbnail != null && !courseThumbnail.isEmpty()) {
+            String newThumbnailUrl = this.localFileStorageService.store(courseThumbnail);
+            course.setCoursethumbnail(newThumbnailUrl);
         }
+    }
+    private void updateCourseFeatures(Course course, CourseFeaturesUpdateDto courseFeaturesUpdateDto) {
+        course.setCourseFeatures(courseFeaturesUpdateDto.getCourseFeatures());
+        course.setCourseTrailer(courseFeaturesUpdateDto.getCourseTrailer());
+    }
+    
+    private CourseDetailDto buildCourseDetailDto(Course c) {
+        return CourseDetailDto.builder()
+                .id(c.getId())
+                .coursename(c.getCoursename())
+                .courseDescription(c.getCourseDescription())
+                .courseprice(c.getCourseprice())
+                .coursethumbnail(c.getCoursethumbnail())
+                .courseTrailer(c.getCourseTrailer())
+                .courseFeatures(c.getCourseFeatures())
+                .categoryId(c.getCourseCategory().getId())
+                .build();
     }
 }

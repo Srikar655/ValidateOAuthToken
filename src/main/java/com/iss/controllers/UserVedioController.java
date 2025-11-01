@@ -1,10 +1,10 @@
 package com.iss.controllers;
 
 import com.iss.Dto.UserVedioDto;
+import com.iss.Dto.UserVideoDetailDisplayDto;
 import com.iss.Services.UserVedioService;
 import com.iss.models.UserVedio;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user-vedios")
+@RequestMapping("/api/user-videos")
 public class UserVedioController {
 
     private final UserVedioService userVedioService;
@@ -63,20 +63,24 @@ public class UserVedioController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @GetMapping("/by-usercourse/{usercourseId}")
-    public ResponseEntity<List<UserVedioDto>> getUserVediosByUserCourseId(
-            @PathVariable("usercourseId") int usercourseId,
-            @RequestParam(defaultValue = "0") int page, 
-            @RequestParam(defaultValue = "10") int size) {
+    @GetMapping("/select")
+    public ResponseEntity<UserVideoDetailDisplayDto> getUserVediosByUserCourseId(
+    		@RequestParam int userCourseId,
+            @RequestParam int videoId) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        List<UserVedioDto> userVedios = userVedioService.findByUsercourseId(usercourseId, pageable);
-        
-        if (userVedios != null && !userVedios.isEmpty()) {
-            return new ResponseEntity<>(userVedios, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+    	try {
+    		UserVideoDetailDisplayDto userVideoDetailDisplayDto = userVedioService.checkAccessAndGetVideoDetails(userCourseId,videoId);
+            if (userVideoDetailDisplayDto != null) {
+                return ResponseEntity.status(HttpStatus.OK).body(userVideoDetailDisplayDto);
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+    	}
+    	catch(Exception ex)
+    	{
+    		ex.printStackTrace();
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    	}
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

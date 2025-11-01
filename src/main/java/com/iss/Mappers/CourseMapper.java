@@ -4,6 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import java.util.List;
+
+import com.iss.Dto.CourseDetailDto;
 import com.iss.Dto.CourseDto;
 import com.iss.models.Course;
 
@@ -16,6 +18,11 @@ public interface CourseMapper {
 	@Mapping(target = "vedios", ignore = true)
 	@Mapping(target = "usercourse", ignore = true)
 	CourseDto toDto(Course course);
+	@Mapping(target = "coursethumbnail", ignore = true)
+	@Mapping(target = "courseCategory.course", ignore = true)
+	@Mapping(target = "vedios", ignore = true)
+	@Mapping(target = "usercourse", ignore = true)
+	CourseDetailDto toDetailDto(Course course);
 	Course toEntity(CourseDto coursedto);
 	@Mapping(target = "coursethumbnail", ignore = true)
 	@Mapping(target = "vedios", ignore = true)

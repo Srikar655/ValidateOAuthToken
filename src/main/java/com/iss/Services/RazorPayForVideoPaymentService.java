@@ -13,15 +13,16 @@ import java.util.Optional;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.iss.Dto.UserVedioDto;
-import com.iss.Mappers.UserVedioMapper;
+import com.iss.Dto.VideoPayementVerificationDto;
 import com.iss.Repos.PaymentRepository;
 import com.iss.Repos.UserRepository;
 import com.iss.Repos.UserVideosRepository;
 import com.iss.models.AccessStatus;
 import com.iss.models.Payment;
+import com.iss.models.PaymentFor;
 import com.iss.models.PaymentStatus;
 import com.iss.models.User;
 import com.iss.models.UserTask;
@@ -79,6 +80,14 @@ public class RazorPayForVideoPaymentService {
     	return 0;
     }
     public Map<String,Object> createVideoPaymentOrderId(int userVideoId,String email) throws Exception {
+    	boolean alreadySubscribed = this.userVedioRepos.existsByIdAndPaymentStatus(
+                userVideoId, 
+                PaymentStatus.COMPLETED
+            );
+
+        if (alreadySubscribed) {
+            throw new IllegalStateException("User is already subscribed to this Video.");
+        }
     	double amount=fetchUserVideoPrice(userVideoId);
         Map<String,Object> map=new HashMap<String,Object>();
     	if(amount!=0)
@@ -101,7 +110,7 @@ public class RazorPayForVideoPaymentService {
     	}
     	return null;
     }
-	public UserVedioDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
+	public VideoPayementVerificationDto verifyPayment(Map<String, String> paymentDetails) throws Exception {
 		try {
             String razorpayOrderId = paymentDetails.get("orderId");
             String razorpayPaymentId = paymentDetails.get("paymentId");
@@ -119,9 +128,15 @@ public class RazorPayForVideoPaymentService {
         }
 		return null;		
 	}
-	private UserVedioDto processPaymentAsync(JSONObject paymentData) {
+	private VideoPayementVerificationDto processPaymentAsync(JSONObject paymentData) {
 		try
 		{
+			String razorpayPaymentId = paymentData.getString("id");
+	        if (paymentRepos.existsByPaymentIdRazorpay(razorpayPaymentId)) {
+	            System.out.println("Payment " + razorpayPaymentId + " already processed. Skipping.");
+	            UserVedio existingUserVideo = paymentRepos.findByPaymentIdRazorpay(razorpayPaymentId).get().getUservedio();
+	            return this.buildPaymentVerification(existingUserVideo);
+	        }
 	        JSONObject metaData = paymentData.getJSONObject("notes");
 	        int userVideoId = metaData.getInt("userVideoId");
 	        String useremail=metaData.getString("email");
@@ -150,55 +165,11 @@ public class RazorPayForVideoPaymentService {
 		        		}
 		        	}
 		        	UserVedio newuservideo=this.userVedioRepos.save(uservideo);
-		        	long createdAt = paymentData.getLong("created_at");
-		            LocalDateTime paymentDateTime = LocalDateTime.ofEpochSecond(createdAt, 0, ZoneOffset.UTC);
-
-		            BigDecimal amount = new BigDecimal(paymentData.getInt("amount")).divide(BigDecimal.valueOf(100));
-		            BigDecimal fee = new BigDecimal(paymentData.getInt("fee")).divide(BigDecimal.valueOf(100));
-		            BigDecimal tax = new BigDecimal(paymentData.getInt("tax")).divide(BigDecimal.valueOf(100));
-		        	Payment payment = Payment.builder()
-		                    .amount(amount)
-		                    .currency(paymentData.getString("currency"))
-		                    .fee(fee)
-		                    .tax(tax)
-		                    .uservedio(newuservideo)
-		                    .paymentStatus(PaymentStatus.COMPLETED)
-		                    .paymentFor(Payment.PaymentType.EPISODE)
-		                    .paymentDate(paymentDateTime)
-		                    .paymentIdRazorpay(paymentData.getString("id"))
-		                    .orderId(paymentData.optString("order_id"))
-		                    .paymentMethod(paymentData.optString("method"))
-		                    .vpa(paymentData.optString("vpa"))
-		                    .contact(paymentData.optString("contact"))
-		                    .email(paymentData.optString("email"))
-		                    .acquirerTransactionId(paymentData.getJSONObject("acquirer_data").optString("upi_transaction_id"))
-		                    .rrn(paymentData.getJSONObject("acquirer_data").optString("rrn"))
-		                    .description(paymentData.optString("description"))
-		                    .user(user) // Use your service method
-		                    .build();
+		        	Payment payment = this.buildPaymentRecord(paymentData, newuservideo, user);
 		        	this.paymentRepos.save(payment);
-		        	UserVedioDto uservideodto= UserVedioMapper.Instance.toDto(newuservideo);
-		        	uservideodto.getVedio().setVideourl(newuservideo.getVedio().getVideourl());
 		        	Vedio video=newuservideo.getVedio();
-		        	VideoReportData videoReport = VideoReportData.builder()
-		        		    .name(user.getUsername())               // user.getUsername()
-		        		    .email(useremail)              // useremail
-		        		    .invoiceno("33")          // provide invoice number if any
-		        		    .paidvideo(newuservideo.getVedio().getVediotitle())          // name or title of the paid video
-		        		    .videono(newuservideo.getId())             // video number if applicable
-		        		    .subscriptionfee(video.getVedioprice())   // payment.getAmount().doubleValue()
-		        		    .subtotal(video.getVedioprice())          // payment.getAmount().doubleValue()
-		        		    .gst(30.0)               // payment.getTax().doubleValue()
-		        		    .paymentdate(Timestamp.valueOf(payment.getPaymentDate()))      // Timestamp.valueOf(payment.getPaymentDate())
-		        		    .paymentid(payment.getPaymentId()+"")          // payment.getPaymentId()
-		        		    .paymentmethod(payment.getPaymentMethod())      // payment.getPaymentMethod()
-		        		    .upi(payment.getVpa())                // payment.getVpa()
-		        		    .transactionid(payment.getAcquirerTransactionId()) 
-		        		    .course(video.getCourse().getCoursename())// payment.getAcquirerTransactionId()
-		        		    .build();
-
-		            this.jasperReportService.createAndSendVideoPaymentInvoiceReport(videoReport);
-		        	return uservideodto;
+		        	this.handlePostPaymentWork(video, payment, user);
+		        	return this.buildPaymentVerification(newuservideo);
 		        }
 		        return null;
 	        }
@@ -210,5 +181,66 @@ public class RazorPayForVideoPaymentService {
 			return null;
 		}
     }
+	
+	
+	
+	@Async
+	private void handlePostPaymentWork(Vedio video,Payment payment,User user)
+	{
+		VideoReportData videoReport = VideoReportData.builder()
+    		    .name(user.getUsername())              
+    		    .email(user.getEmail())            
+    		    .invoiceno("33")          
+    		    .paidvideo(video.getVediotitle())         
+    		    .videono(video.getId())             
+    		    .subscriptionfee(video.getVedioprice())   
+    		    .subtotal(video.getVedioprice())          
+    		    .gst(30.0)               
+    		    .paymentdate(Timestamp.valueOf(payment.getPaymentDate()))      
+    		    .paymentid(payment.getPaymentId()+"")          
+    		    .paymentmethod(payment.getPaymentMethod())     
+    		    .upi(payment.getVpa())                
+    		    .transactionid(payment.getAcquirerTransactionId()) 
+    		    .course(video.getCourse().getCoursename())
+    		    .build();
+        this.jasperReportService.createAndSendVideoPaymentInvoiceReport(videoReport);
+	}
+	
+	private Payment buildPaymentRecord(JSONObject paymentData , UserVedio newuservideo, User user)
+	{
+		long createdAt = paymentData.getLong("created_at");
+        LocalDateTime paymentDateTime = LocalDateTime.ofEpochSecond(createdAt, 0, ZoneOffset.UTC);
+
+        BigDecimal amount = new BigDecimal(paymentData.getInt("amount")).divide(BigDecimal.valueOf(100));
+        BigDecimal fee = new BigDecimal(paymentData.getInt("fee")).divide(BigDecimal.valueOf(100));
+        BigDecimal tax = new BigDecimal(paymentData.getInt("tax")).divide(BigDecimal.valueOf(100));
+    	Payment payment = Payment.builder()
+                .amount(amount)
+                .currency(paymentData.getString("currency"))
+                .fee(fee)
+                .tax(tax)
+                .uservedio(newuservideo)
+                .paymentStatus(PaymentStatus.COMPLETED)
+                .paymentFor(PaymentFor.EPISODE)
+                .paymentDate(paymentDateTime)
+                .paymentIdRazorpay(paymentData.getString("id"))
+                .orderId(paymentData.optString("order_id"))
+                .paymentMethod(paymentData.optString("method"))
+                .vpa(paymentData.optString("vpa"))
+                .contact(paymentData.optString("contact"))
+                .email(paymentData.optString("email"))
+                .acquirerTransactionId(paymentData.getJSONObject("acquirer_data").optString("upi_transaction_id"))
+                .rrn(paymentData.getJSONObject("acquirer_data").optString("rrn"))
+                .description(paymentData.optString("description"))
+                .user(user) 
+                .build();
+        
+		return payment;
+	}
+	
+	private VideoPayementVerificationDto buildPaymentVerification(UserVedio uservideo)
+	{
+		return new VideoPayementVerificationDto(uservideo.getId(),uservideo.getVedio().getVideourl() ,PaymentFor.EPISODE , uservideo.getPaymentStatus() ,"Success");
+	}
 
 }

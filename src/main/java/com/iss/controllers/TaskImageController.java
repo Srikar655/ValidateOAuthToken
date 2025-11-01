@@ -33,6 +33,18 @@ public class TaskImageController {
     		return ResponseEntity.status(500).body("Error getting the task Images: " + ex.getMessage());
     	}
     }
+    
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+    @GetMapping("/task-reference/{id}")
+    public ResponseEntity<?> getTaskReference(@PathVariable("id") int id) {
+    	try
+    	{
+    		byte [] referenceBytes = taskImageService.getReference(id);
+    		return ResponseEntity.ok(referenceBytes);
+    	}catch(Exception ex) {
+    		return ResponseEntity.status(500).body("Error getting the task Images: " + ex.getMessage());
+    	}
+    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete")

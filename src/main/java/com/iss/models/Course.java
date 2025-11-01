@@ -5,18 +5,19 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,15 +29,14 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(exclude = {"vedios","coursethumbnail"})
+@Builder
 public class Course {
 	@Id
 	@GeneratedValue
 	private int id;
 	private String coursename;
 	private double courseprice;
-	@Lob
-	@Basic(fetch = FetchType.LAZY)
-	private byte[] coursethumbnail;
+	private String coursethumbnail;
 	@JsonManagedReference("course-videos")
 	@OneToMany(mappedBy="course",cascade=CascadeType.ALL,orphanRemoval=true,fetch=FetchType.LAZY)
 	List<Vedio> vedios;
@@ -44,6 +44,9 @@ public class Course {
 	private String courseTrailer;
 	@Column(length = 1000) 
 	private String courseDescription;
+	@ElementCollection(fetch=FetchType.LAZY)
+    @CollectionTable(name = "course_features", joinColumns = @JoinColumn(name = "course_id"))
+    @Column(name = "feature")
 	private List<String> courseFeatures;
 	@JsonManagedReference("course-usercourses")
 	@OneToMany(mappedBy="course",cascade= {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REMOVE},orphanRemoval=true,fetch=FetchType.LAZY)
