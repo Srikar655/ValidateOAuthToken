@@ -1,5 +1,62 @@
 The "ValidateOAuthToken" project, also envisioned as the "Innovative Tutorials Backend," serves as the robust backend system for the "Innovative Tutorials" online learning platform. Leveraging a comprehensive stack of modern Java technologies, the project is built upon the Spring Boot framework for streamlined application development. Security is a cornerstone, implemented through Spring Security, incorporating OAuth2 client and resource server capabilities alongside JWT for secure token-based authentication. Data persistence is managed by Spring Data JPA and Hibernate, interacting with a Microsoft SQL Server database. The platform integrates with Razorpay for payment processing and utilizes JasperReports for generating reports. Real-time communication features are enabled by Spring WebSockets, while Thymeleaf is employed for server-side template rendering. Development efficiency is enhanced through the use of MapStruct for bean mapping and Lombok to reduce boilerplate code. This combination of technologies aims to deliver a secure, scalable, and feature-rich backend for an engaging online learning experience.
 
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+*   Java 21
+*   Maven
+*   Microsoft SQL Server
+
+### Installing
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/ValidateOAuthToken.git
+    ```
+2.  **Configure the database**
+    *   Create a new database in Microsoft SQL Server.
+    *   Update the `src/main/resources/application.properties` file with your database credentials.
+3.  **Build the project**
+    ```bash
+    mvn clean install
+    ```
+4.  **Run the application**
+    ```bash
+    mvn spring-boot:run
+    ```
+
+## Configuration
+
+The primary configuration file for the application is `src/main/resources/application.properties`. This file contains settings for:
+
+*   **Database Connection:** Configure the database URL, username, and password.
+*   **Spring Security:** Configure JWT secret keys and expiration times.
+*   **Email Server:** Configure email server integration for notifications.
+*   **Razorpay:** Configure Razorpay API keys for payment processing.
+*   **JasperReports:** Configure paths to JasperReports templates.
+
+## API Endpoints
+
+The backend provides a comprehensive set of RESTful APIs to interact with the application's services.
+
+### Course Management
+
+*   `POST /api/courses/add`: Add a new course. (Admin only)
+*   `PUT /api/courses/update`: Update an existing course. (Admin only)
+*   `PUT /api/courses/updateCourseFeatures`: Update features of a course. (Admin only)
+*   `GET /api/courses/getAll`: Get a paginated list of all courses. (Admin and User)
+*   `GET /api/courses/get/{id}`: Get a course by its ID. (Admin only)
+*   `DELETE /api/courses/delete/{id}`: Delete a course by its ID. (Admin only)
+
+### User Course Management
+
+*   `GET /api/usercourses`: Get a list of all user-course enrollments. (Admin and User)
+*   `GET /api/usercourses/{id}`: Get user-course enrollment details by course ID. (Admin and User)
+*   `DELETE /api/usercourses/{id}`: Delete a user-course enrollment. (Admin and User)
+
 ## Key Features and Functionalities
 
 The backend system for "Innovative Tutorials" provides a comprehensive suite of features:
